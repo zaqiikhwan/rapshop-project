@@ -38,9 +38,19 @@ func (sr *sosmedRepository) GetByID(id uint) (entities.Sosmed, error) {
 }
 
 func (sr *sosmedRepository) UpdateByID(updateSosmed entities.Sosmed, id uint) error {
+	var detailSosmed entities.Testimoni
+
+	if err := sr.db.Where("id = ?", id).Model(&detailSosmed).Updates(updateSosmed).Error; err != nil {
+		return err
+	}
 	return nil
 }
 
 func (sr *sosmedRepository) DeleteByID(id uint) error {
+	var detailSosmed entities.Testimoni
+	if err := sr.db.Delete(&detailSosmed, id).Error; err != nil {
+		return err
+	}
+
 	return nil
 }

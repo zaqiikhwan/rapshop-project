@@ -22,3 +22,11 @@ type SosmedRepository interface {
 	UpdateByID(updateSosmed entities.Sosmed, id uint) error
 	DeleteByID(id uint) error
 }
+
+type SosmedUsecase interface {
+	CreateSosmed(input *InputSosmed) error
+	GetAllSosmed() ([]SosmedDto, error) // need paginate implement later
+	GetSosmedByID(id uint) (entities.Sosmed, error)
+	UpdateSosmedByID(id uint, input *InputSosmed) (entities.Sosmed, error)
+	DeleteSosmedByID(id uint) error
+}
