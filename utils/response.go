@@ -26,7 +26,7 @@ func SuccessResponse(c *gin.Context, httpCode int, msg string, data interface{})
 		c.JSON(http.StatusInternalServerError, response{
 			StatusCode: httpCode,
 			Status:  "error, internal server error",
-			Message: "RESPONSE ERROR",
+			Message: msg,
 			Data:    nil,
 		})
 	}
@@ -84,7 +84,7 @@ func FailureOrErrorResponse(c *gin.Context, httpCode int, msg string, err error)
 			c.JSON(httpCode, response{
 				StatusCode: httpCode,
 				Status: "error, internal server error",
-				Message: "RESPONSE ERROR",
+				Message: msg,
 				Data: gin.H {
 					"error": err.Error(),
 				},
