@@ -78,7 +78,7 @@ func (ah *AdminHandler) GetProfile(c *gin.Context) {
 	admin, err := ah.AdminUsecase.Profile(string(id))
 
 	if err == gorm.ErrRecordNotFound {
-		utils.FailureOrErrorResponse(c, http.StatusUnauthorized, "admin is not exist", err)
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "admin is not exist", err)
 		return
 	}
 
