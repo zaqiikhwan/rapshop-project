@@ -16,14 +16,24 @@ func NewSosmedRepository(db *gorm.DB) model.SosmedRepository {
 }
 
 func (sr *sosmedRepository) Create(newSosmed entities.Sosmed) error {
+	if err := sr.db.Create(&newSosmed).Error; err != nil {
+		return err
+	}
 	return nil
 }
 
 func (sr *sosmedRepository) GetAll() ([]model.SosmedDto, error) {
+	var models entities.Sosmed
+	if err := sr.db.Model(&models).Find(&model.SosmedDto{}).Error; err != nil {
+		return []model.SosmedDto{}, err
+	}
 	return []model.SosmedDto{}, nil
 }
 
 func (sr *sosmedRepository) GetByID(id uint) (entities.Sosmed, error) {
+	if err := sr.db.First(&entities.Sosmed{}, id).Error; err != nil {
+		return entities.Sosmed{}, err
+	}
 	return entities.Sosmed{}, nil
 }
 

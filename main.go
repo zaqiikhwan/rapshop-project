@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 	"net/http"
-	"rapsshop-project/admin/handlers"
-	"rapsshop-project/admin/repo"
-	"rapsshop-project/admin/usecase"
+	adminHandler "rapsshop-project/src/admin/handlers"
+	adminRepo "rapsshop-project/src/admin/repo"
+	adminUsecase "rapsshop-project/src/admin/usecase"
 	"rapsshop-project/database/mysql"
 	"rapsshop-project/middleware"
-	testiRepo "rapsshop-project/testimoni/repo"
-	testiUsecase "rapsshop-project/testimoni/usecase"
-	testiHandler "rapsshop-project/testimoni/handlers"
+	testiRepo "rapsshop-project/src/testimoni/repo"
+	testiUsecase "rapsshop-project/src/testimoni/usecase"
+	testiHandler "rapsshop-project/src/testimoni/handlers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -41,9 +41,9 @@ func main() {
 
 	api := r.Group("/api/v1")
 
-	adminRepo := repo.NewAdminRepository(db)
-	adminUsecase := usecase.NewAdminUsecase(adminRepo)
-	handlers.NewAdminHandler(api, adminUsecase, jwtMiddleware)
+	adminRepo := adminRepo.NewAdminRepository(db)
+	adminUsecase := adminUsecase.NewAdminUsecase(adminRepo)
+	adminHandler.NewAdminHandler(api, adminUsecase, jwtMiddleware)
 
 	testiRepo := testiRepo.NewTestimoniRepository(db)
 	testiUsecase := testiUsecase.NewTestimoniUsecase(testiRepo)
