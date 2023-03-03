@@ -95,8 +95,13 @@ func (th *testimoniHandler) UpdateTestimoniByID(c *gin.Context) {
 	JumlahDL, _ := strconv.Atoi(jumlahDLStr)
 
 	updateTestimoni, err := th.TestimoniUsecase.UpdateTestimoniByID(uint(idUint),image, testimoni, JumlahDL)
+	if err == gorm.ErrRecordNotFound {
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "id not found", err)
+		return
+	}
+
 	if err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, err.Error(), err)
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "internal server error", err)
 		return
 	}
 

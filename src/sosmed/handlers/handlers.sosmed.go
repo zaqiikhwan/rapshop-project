@@ -115,4 +115,6 @@ func(sh *sosmedHandler) DeleteSosmedByID(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed to delete data sosmed", err)
 		return	
 	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success delete data sosmed", nil)
 }
