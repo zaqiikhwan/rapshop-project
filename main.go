@@ -3,14 +3,21 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"rapsshop-project/database/mysql"
+	"rapsshop-project/middleware"
+	
 	adminHandler "rapsshop-project/src/admin/handlers"
 	adminRepo "rapsshop-project/src/admin/repo"
 	adminUsecase "rapsshop-project/src/admin/usecase"
-	"rapsshop-project/database/mysql"
-	"rapsshop-project/middleware"
+
+	testiHandler "rapsshop-project/src/testimoni/handlers"
 	testiRepo "rapsshop-project/src/testimoni/repo"
 	testiUsecase "rapsshop-project/src/testimoni/usecase"
-	testiHandler "rapsshop-project/src/testimoni/handlers"
+
+	sosmedHandler "rapsshop-project/src/sosmed/handlers"
+	sosmedRepo "rapsshop-project/src/sosmed/repo"
+	sosmedUsecase "rapsshop-project/src/sosmed/usecase"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -30,7 +37,7 @@ func main() {
 	
 
 	// uncomment for change to release mode
-	// gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(os.Getenv("GIN_MODE"))
 	r := gin.Default()
 	// health check route
 	r.GET("/ping", func(c *gin.Context) {
@@ -48,6 +55,10 @@ func main() {
 	testiRepo := testiRepo.NewTestimoniRepository(db)
 	testiUsecase := testiUsecase.NewTestimoniUsecase(testiRepo)
 	testiHandler.NewTestimoniHandler(api, testiUsecase, jwtMiddleware)
+
+	sosmedRepo := sosmedRepo.NewSosmedRepository(db)
+	sosmedUsecase := sosmedUsecase.NewSosmedUsecase(sosmedRepo)
+	sosmedHandler.NewAdminHandler(api, sosmedUsecase, jwtMiddleware)
 
 	r.Run()
 }
