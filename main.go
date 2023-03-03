@@ -9,15 +9,15 @@ import (
 	
 	adminHandler "rapsshop-project/src/admin/handlers"
 	adminRepo "rapsshop-project/src/admin/repo"
-	adminUsecase "rapsshop-project/src/admin/usecase"
+	adminUsecase "rapsshop-project/src/admin/service"
 
 	testiHandler "rapsshop-project/src/testimoni/handlers"
 	testiRepo "rapsshop-project/src/testimoni/repo"
-	testiUsecase "rapsshop-project/src/testimoni/usecase"
+	testiUsecase "rapsshop-project/src/testimoni/service"
 
 	sosmedHandler "rapsshop-project/src/sosmed/handlers"
 	sosmedRepo "rapsshop-project/src/sosmed/repo"
-	sosmedUsecase "rapsshop-project/src/sosmed/usecase"
+	sosmedUsecase "rapsshop-project/src/sosmed/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
