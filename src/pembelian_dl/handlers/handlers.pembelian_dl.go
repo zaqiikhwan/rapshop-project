@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -47,7 +48,8 @@ func NewPembelianHandler(r *gin.RouterGroup){
 }
 
 // catetan!!
-//  di sini masih perlu recognition lebih banyak
+// di sini masih perlu recognition lebih banyak
+// belum clean...
 
 func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	var paymentType string
@@ -91,7 +93,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 
 	req, err := http.NewRequest("POST", sandboxEnv, payload)
 	if err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when make new transaction", err)
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when make new request", err)
 		return
 	}
 
@@ -104,11 +106,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(os.Getenv("AUTHORIZATION_VALUE")))))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when make new transcation request (issue from server)", err)
 		return
 	}
 	defer res.Body.Close()
@@ -121,23 +119,38 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 		})
 		return
 	}
+
+	type responsTransaction struct {
+		ID string `json:"id"`
+		StatusCode string `json:"status_code"`
+		StatusMessage string `json:"status_message"`
+	}
+
+	if len(body) == 115 {
+		var responseBody responsTransaction
+		err := json.Unmarshal(body, &responseBody)
+		if err != nil {
+			utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "something wrong happen when unmarshal the json", err)
+			return
+		}
+
+		if responseBody.StatusCode == "401" {
+			utils.FailureOrErrorResponse(c, http.StatusUnauthorized, "unknown authorization value for selected environment", errors.New(responseBody.StatusMessage))
+			return
+		}
+	
+	}
+
 	var responseBody any
 	err = json.Unmarshal(body, &responseBody)
-	fmt.Println(body)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "something wrong happen when unmarshal the json", err)
 		return
 	}
 
-	// perlu fix response disini banyak PR mengenai case masing-masing
-	// ada dua error yang ga kehandle tadi
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "proses menghubungkan data dengan midtrans berhasil",
-		"data":    responseBody,
-	})
+	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", responseBody)
+}
+
+func (ph *pembelianHandler) HandlerNotifikasi(c *gin.Context) {
+
 }
