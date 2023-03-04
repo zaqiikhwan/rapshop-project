@@ -29,7 +29,7 @@ func (ah *AdminHandler) RegisterAdmin(c *gin.Context) {
 	var input model.NewAdmin
 	
 	if err := c.BindJSON(&input); err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusBadRequest, err.Error(), err)
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "input not binding with json", err)
 		return
 	}
 	if input.Token != os.Getenv("TOKEN") {
@@ -38,7 +38,7 @@ func (ah *AdminHandler) RegisterAdmin(c *gin.Context) {
 	}
 
 	if err := ah.Register(&input); err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, err.Error(), err)
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed register new admin", err)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (ah *AdminHandler) LoginAdmin(c *gin.Context) {
 	var input model.AdminLogin
 
 	if err := c.BindJSON(&input); err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusBadRequest, err.Error(), err)
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "input not binding with json", err)
 		return
 	}
 

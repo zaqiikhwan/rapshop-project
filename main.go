@@ -7,14 +7,20 @@ import (
 	"rapsshop-project/database/mysql"
 	"rapsshop-project/middleware"
 	
+	// admin 
 	adminHandler "rapsshop-project/src/admin/handlers"
 	adminRepo "rapsshop-project/src/admin/repo"
 	adminUsecase "rapsshop-project/src/admin/service"
 
+	// pembelian
+	pembelianDLHandler "rapsshop-project/src/pembelian_dl/handlers"
+
+	// testimoni
 	testiHandler "rapsshop-project/src/testimoni/handlers"
 	testiRepo "rapsshop-project/src/testimoni/repo"
 	testiUsecase "rapsshop-project/src/testimoni/service"
 
+	// sosmed
 	sosmedHandler "rapsshop-project/src/sosmed/handlers"
 	sosmedRepo "rapsshop-project/src/sosmed/repo"
 	sosmedUsecase "rapsshop-project/src/sosmed/service"
@@ -59,6 +65,8 @@ func main() {
 	sosmedRepo := sosmedRepo.NewSosmedRepository(db)
 	sosmedUsecase := sosmedUsecase.NewSosmedUsecase(sosmedRepo)
 	sosmedHandler.NewAdminHandler(api, sosmedUsecase, jwtMiddleware)
+
+	pembelianDLHandler.NewPembelianHandler(api)
 
 	r.Run()
 }
