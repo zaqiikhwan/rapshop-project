@@ -50,6 +50,7 @@ func main() {
 	// uncomment for change to release mode
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	r := gin.Default()
+	
 	// health check route
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
