@@ -2,9 +2,10 @@ package model
 
 import "rapsshop-project/entities"
 
+// must initiate new value with json for data transfer object
 type InputStockDL struct {
-	StockDL int
-	Profit  int
+	StockDL int `json:"stock_dl"`
+	Profit  int `json:"profit"`
 }
 
 type StockDLRepository interface {

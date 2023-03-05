@@ -52,6 +52,7 @@ func (sdlu *stockDLUsecase) UpdateStock(input *model.InputStockDL) (entities.Sto
 	}
 
 	updateStockDL := entities.StockDL {
+		Profit: input.Profit,
 		StockDL: input.StockDL,
 	}
 

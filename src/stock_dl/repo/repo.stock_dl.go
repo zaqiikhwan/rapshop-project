@@ -39,7 +39,8 @@ func (sdlr *stockDLRepository) GetLatest() (entities.StockDL, error) {
 }
 
 func (sdlr *stockDLRepository) UpdateByID(updateStock entities.StockDL, id uint) error {
-	if err := sdlr.db.Where("id = ?", id).Updates(updateStock).Error; err != nil {
+	var stock entities.StockDL
+	if err := sdlr.db.Model(&stock).Where("id = ?", id).Updates(updateStock).Error; err != nil {
 		return err
 	}
 	return nil
