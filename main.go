@@ -15,6 +15,11 @@ import (
 	// pembelian
 	pembelianDLHandler "rapsshop-project/src/pembelian_dl/handlers"
 
+	// stock_dl
+	stockDLRepo "rapsshop-project/src/stock_dl/repo"
+	stockDLUsecase "rapsshop-project/src/stock_dl/service"
+	stockDLHandler "rapsshop-project/src/stock_dl/handlers"
+
 	// testimoni
 	testiHandler "rapsshop-project/src/testimoni/handlers"
 	testiRepo "rapsshop-project/src/testimoni/repo"
@@ -58,6 +63,10 @@ func main() {
 	adminUsecase := adminUsecase.NewAdminUsecase(adminRepo)
 	adminHandler.NewAdminHandler(api, adminUsecase, jwtMiddleware)
 
+	stockDLRepo := stockDLRepo.NewStockDLRepository(db)
+	stockDLUsecase := stockDLUsecase.NewStockDLUsecase(stockDLRepo)
+	stockDLHandler.NewAdminHandler(api, stockDLUsecase, jwtMiddleware)
+
 	testiRepo := testiRepo.NewTestimoniRepository(db)
 	testiUsecase := testiUsecase.NewTestimoniUsecase(testiRepo)
 	testiHandler.NewTestimoniHandler(api, testiUsecase, jwtMiddleware)
@@ -65,6 +74,7 @@ func main() {
 	sosmedRepo := sosmedRepo.NewSosmedRepository(db)
 	sosmedUsecase := sosmedUsecase.NewSosmedUsecase(sosmedRepo)
 	sosmedHandler.NewAdminHandler(api, sosmedUsecase, jwtMiddleware)
+
 
 	pembelianDLHandler.NewPembelianHandler(api)
 

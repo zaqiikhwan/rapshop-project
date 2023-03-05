@@ -10,7 +10,7 @@ type stockDLUsecase struct {
 	StockDLRepository model.StockDLRepository
 }
 
-func NewSosmedUsecase(repoStockDL model.StockDLRepository) model.StockDLUsecase {
+func NewStockDLUsecase(repoStockDL model.StockDLRepository) model.StockDLUsecase {
 	return &stockDLUsecase{StockDLRepository: repoStockDL}
 }
 
