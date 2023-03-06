@@ -33,7 +33,7 @@ func (hdlh *hargaDLHandler) CreateNewPrice(c *gin.Context){
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when add new price", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusCreated, "success add new price", input.NominalHarga)
+	utils.SuccessResponse(c, http.StatusCreated, "success add new price", input)
 }
 
 func (hdlh *hargaDLHandler) GetLatestPrice(c *gin.Context) {

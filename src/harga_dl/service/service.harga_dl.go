@@ -15,9 +15,10 @@ func NewHargaDLUsecase(repoHargaDL model.HargaDLRepository) model.HargaDLUsecase
 
 func (hdlu *hargaDLUsecase) CreateNewPrice(input *model.InputHargaDL) error {
 	newPrice := entities.HargaDL{
-		NominalHarga: input.NominalHarga,
-		IsPembelian: &input.IsPembelian,
-		IsDL: &input.IsDL,
+		HargaJualDL: input.HargaJualDL,
+		HargaBeliDL: input.HargaBeliDL,
+		HargaJualBGL: input.HargaJualBGL,
+		HargaBeliBGL: input.HargaBeliBGL,
 	}
 
 	if err := hdlu.HargaDLRepository.Create(newPrice); err != nil {
@@ -37,9 +38,10 @@ func (hdlu *hargaDLUsecase) GetLatestPrice() (entities.HargaDL, error) {
 func (hdlu *hargaDLUsecase) UpdateLatestPrice(input *model.InputHargaDL) (entities.HargaDL, error) {
 	var hargaDL entities.HargaDL
 	updatePrice := entities.HargaDL{
-		NominalHarga: input.NominalHarga,
-		IsPembelian: &input.IsPembelian,
-		IsDL: &input.IsDL,
+		HargaJualDL: input.HargaJualDL,
+		HargaBeliDL: input.HargaBeliDL,
+		HargaJualBGL: input.HargaJualBGL,
+		HargaBeliBGL: input.HargaJualBGL,
 	}
 
 	hargaDL, err := hdlu.HargaDLRepository.GetLatest()
