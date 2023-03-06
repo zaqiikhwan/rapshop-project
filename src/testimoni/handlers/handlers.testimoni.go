@@ -19,9 +19,9 @@ func NewTestimoniHandler(r *gin.RouterGroup, tu model.TestimoniUsecase, jwtMiddl
 
 	r.POST("/testimoni", jwtMiddleware, testimoniHandler.CreateTestimoni)
 	r.GET("/testimonis", testimoniHandler.GetAllTestimoni)
-	r.GET("/testimoni/:id", testimoniHandler.GetTestimoniByID)
-	r.PATCH("/testimoni/:id", testimoniHandler.UpdateTestimoniByID)
-	r.DELETE("/testimoni/:id", testimoniHandler.DeleteTestimoniByID)
+	r.GET("/testimoni/:id", jwtMiddleware, testimoniHandler.GetTestimoniByID)
+	r.PATCH("/testimoni/:id", jwtMiddleware, testimoniHandler.UpdateTestimoniByID)
+	r.DELETE("/testimoni/:id", jwtMiddleware, testimoniHandler.DeleteTestimoniByID)
 }
 
 
