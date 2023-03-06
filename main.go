@@ -35,6 +35,11 @@ import (
 	sosmedRepo "rapsshop-project/src/sosmed/repo"
 	sosmedUsecase "rapsshop-project/src/sosmed/service"
 
+	// env growtopia
+	envGrowtopiaRepo "rapsshop-project/src/env_growtopia/repo"
+	envGrowtopiaUsecase "rapsshop-project/src/env_growtopia/service"
+	envGrowtopiaHandler "rapsshop-project/src/env_growtopia/handlers"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -85,6 +90,9 @@ func main() {
 	hargaDLUsecase := hargaDLUsecase.NewHargaDLUsecase(hargaDLRepo)
 	hargaDLHandler.NewHargaDLHandler(api, hargaDLUsecase, jwtMiddleware)
 
+	envGrowtopiaRepo := envGrowtopiaRepo.NewEnvGrowtopiaRepo(db)
+	envGrowtopiaUsecase := envGrowtopiaUsecase.NewEnvGrowtopiaUsecase(envGrowtopiaRepo)
+	envGrowtopiaHandler.NewEnvGrowtopiaHandler(api, envGrowtopiaUsecase, jwtMiddleware)
 
 	pembelianDLHandler.NewPembelianHandler(api)
 

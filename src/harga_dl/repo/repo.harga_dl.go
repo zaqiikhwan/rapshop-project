@@ -22,14 +22,6 @@ func (hdlr *hargaDLRepository) Create(newHarga entities.HargaDL) error {
 	return nil
 }
 
-// func (hdlr *hargaDLRepository) GetAll() ([]entities.StockDL, error) {
-// 	var allStock []entities.StockDL
-// 	if err := hdlr.db.Model(&allStock).Find(&allStock).Error; err != nil {
-// 		return allStock, err
-// 	}
-// 	return allStock, nil
-// }
-
 func (hdlr *hargaDLRepository) GetLatest() (entities.HargaDL, error) {
 	var detail entities.HargaDL
 	if err := hdlr.db.Order("id desc").First(&detail).Error; err != nil {
