@@ -4,7 +4,8 @@ import "gorm.io/gorm"
 
 type Testimoni struct {
 	gorm.Model
-	Gambar string 
+	Gambar string  
 	Testimoni string 
-	JumlahDL int 
+	Username string
+	Title string 
 }

@@ -9,13 +9,15 @@ type TestimoniDto struct {
 	ID        uint   `json:"id"`
 	Gambar    string `json:"gambar"`
 	Testimoni string `json:"testimoni"`
-	JumlahDL  int    `json:"jumlah_dl"`
+	Username string `json:"username"`
+	Title string `json:"title"`
 }
 
 type InputTestimoni struct {
 	Gambar    string `json:"gambar"`
 	Testimoni string `json:"testimoni"`
-	JumlahDL  int    `json:"jumlah_dl"`
+	Username string `json:"username"`
+	Title string `json:"title"`
 }
 
 type TestimoniRepository interface {
@@ -27,9 +29,9 @@ type TestimoniRepository interface {
 }
 
 type TestimoniUsecase interface {
-	CreateTestimoni(image *multipart.FileHeader, testi string, jumlah int) error
+	CreateTestimoni(image *multipart.FileHeader, testi string, uname string, title string) error
 	GetAllTestimoni() ([]TestimoniDto, error) // need paginate implement later
 	GetTestimoniByID(id uint) (entities.Testimoni, error)
-	UpdateTestimoniByID(id uint, image *multipart.FileHeader, testi string, jumlah int) (entities.Testimoni, error)
+	UpdateTestimoniByID(id uint, image *multipart.FileHeader, testi string, uname string, title string) (entities.Testimoni, error)
 	DeleteTestimoniByID(id uint) error
 }

@@ -27,20 +27,15 @@ func NewTestimoniHandler(r *gin.RouterGroup, tu model.TestimoniUsecase, jwtMiddl
 
 func (th *testimoniHandler) CreateTestimoni(c *gin.Context) {
 	testimoni := c.PostForm("testimoni")
-	jumlahDLStr := c.PostForm("jumlah_dl")
+	username := c.PostForm("username")
+	title := c.PostForm("title")
 	image, err := c.FormFile("gambar")
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
-	JumlahDL, err := strconv.Atoi(jumlahDLStr)
-	if err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusBadRequest, err.Error(), err)
-		return
-	}
-
-	if err := th.TestimoniUsecase.CreateTestimoni(image, testimoni, JumlahDL); err != nil {
+	if err := th.TestimoniUsecase.CreateTestimoni(image, testimoni, username, title); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, err.Error(), err)
 		return
 	}
@@ -89,12 +84,11 @@ func (th *testimoniHandler) UpdateTestimoniByID(c *gin.Context) {
 	}
 
 	testimoni := c.PostForm("testimoni")
-	jumlahDLStr := c.PostForm("jumlah_dl")
+	username := c.PostForm("username")
+	title := c.PostForm("title")
 	image, _ := c.FormFile("gambar")
 
-	JumlahDL, _ := strconv.Atoi(jumlahDLStr)
-
-	updateTestimoni, err := th.TestimoniUsecase.UpdateTestimoniByID(uint(idUint),image, testimoni, JumlahDL)
+	updateTestimoni, err := th.TestimoniUsecase.UpdateTestimoniByID(uint(idUint),image, testimoni, username, title)
 	if err == gorm.ErrRecordNotFound {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "id not found", err)
 		return

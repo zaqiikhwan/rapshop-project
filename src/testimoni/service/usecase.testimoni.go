@@ -18,7 +18,7 @@ func NewTestimoniUsecase(repoTesti model.TestimoniRepository) model.TestimoniUse
 	return &testimoniUsecase{TestimoniRepository: repoTesti}
 }
 
-func (tu *testimoniUsecase) CreateTestimoni(image *multipart.FileHeader, testi string, jumlah int) error {
+func (tu *testimoniUsecase) CreateTestimoni(image *multipart.FileHeader, testi string, uname string, title string) error {
 
 	client := storage_go.NewClient(os.Getenv("SUPABASE_URL"), os.Getenv("SERVICE_TOKEN"), nil)
 
@@ -36,7 +36,8 @@ func (tu *testimoniUsecase) CreateTestimoni(image *multipart.FileHeader, testi s
 	newTesti := entities.Testimoni{
 		Gambar: os.Getenv("BASE_URL") + image.Filename,
 		Testimoni: testi,
-		JumlahDL: jumlah,
+		Username: uname,
+		Title: title,
 	}
 
 	if err := tu.TestimoniRepository.Create(newTesti); err != nil {
@@ -63,7 +64,7 @@ func (tu *testimoniUsecase) GetTestimoniByID(id uint) (entities.Testimoni, error
 	return detailTestimoni, nil
 }
 
-func (tu *testimoniUsecase) UpdateTestimoniByID(id uint, image *multipart.FileHeader, testi string, jumlah int) (entities.Testimoni, error) {
+func (tu *testimoniUsecase) UpdateTestimoniByID(id uint, image *multipart.FileHeader, testi string, uname string, title string) (entities.Testimoni, error) {
 	client := storage_go.NewClient(os.Getenv("SUPABASE_URL"), os.Getenv("SERVICE_TOKEN"), nil)
 
 	if client == nil {
@@ -93,7 +94,8 @@ func (tu *testimoniUsecase) UpdateTestimoniByID(id uint, image *multipart.FileHe
 
 		updateTesti = entities.Testimoni{
 			Testimoni: testi,
-			JumlahDL: jumlah,
+			Username: uname,
+			Title: title,
 			Gambar: os.Getenv("BASE_URL") + image.Filename,
 		}
 
@@ -105,7 +107,8 @@ func (tu *testimoniUsecase) UpdateTestimoniByID(id uint, image *multipart.FileHe
 	} else {
 		updateTesti = entities.Testimoni{
 			Testimoni: testi,
-			JumlahDL: jumlah,
+			Username: uname,
+			Title: title,
 		}
 	
 		err = tu.TestimoniRepository.UpdateByID(updateTesti, id)
