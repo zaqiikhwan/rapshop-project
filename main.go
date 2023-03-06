@@ -20,6 +20,11 @@ import (
 	stockDLUsecase "rapsshop-project/src/stock_dl/service"
 	stockDLHandler "rapsshop-project/src/stock_dl/handlers"
 
+	// harga_dl
+	hargaDLRepo "rapsshop-project/src/harga_dl/repo"
+	hargaDLUsecase "rapsshop-project/src/harga_dl/service"
+	hargaDLHandler "rapsshop-project/src/harga_dl/handlers"
+
 	// testimoni
 	testiHandler "rapsshop-project/src/testimoni/handlers"
 	testiRepo "rapsshop-project/src/testimoni/repo"
@@ -75,6 +80,10 @@ func main() {
 	sosmedRepo := sosmedRepo.NewSosmedRepository(db)
 	sosmedUsecase := sosmedUsecase.NewSosmedUsecase(sosmedRepo)
 	sosmedHandler.NewAdminHandler(api, sosmedUsecase, jwtMiddleware)
+
+	hargaDLRepo := hargaDLRepo.NewHargaDLRepository(db)
+	hargaDLUsecase := hargaDLUsecase.NewHargaDLUsecase(hargaDLRepo)
+	hargaDLHandler.NewHargaDLHandler(api, hargaDLUsecase, jwtMiddleware)
 
 
 	pembelianDLHandler.NewPembelianHandler(api)

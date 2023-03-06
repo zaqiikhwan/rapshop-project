@@ -4,8 +4,8 @@ import "rapsshop-project/entities"
 
 type InputHargaDL struct {
 	NominalHarga int  `json:"nominal_harga"`
-	IsPembelian  bool `json:"is_pembelian"`
-	IsDL         bool `json:"is_dl"`
+	IsPembelian  int `json:"is_pembelian"`
+	IsDL         int `json:"is_dl"`
 }
 
 type HargaDLRepository interface {
