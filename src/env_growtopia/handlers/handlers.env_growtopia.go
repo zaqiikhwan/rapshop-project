@@ -45,7 +45,7 @@ func (egh *envGrowtopiaHandler) GetLatestEnv(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed to fetch env growtopia data", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusCreated, "success add new env growtopia", envGrowtopia)
+	utils.SuccessResponse(c, http.StatusOK, "success add new env growtopia", envGrowtopia)
 }
 
 func (egh *envGrowtopiaHandler) UpdateLatestEnv(c *gin.Context) {
@@ -61,5 +61,5 @@ func (egh *envGrowtopiaHandler) UpdateLatestEnv(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when add new env growtopia", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusCreated, "success add new env growtopia", updatedEnv)
+	utils.SuccessResponse(c, http.StatusOK, "success add new env growtopia", updatedEnv)
 }

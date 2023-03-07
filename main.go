@@ -15,6 +15,11 @@ import (
 	// pembelian
 	pembelianDLHandler "rapsshop-project/src/pembelian_dl/handlers"
 
+	// penjualan dl
+	jualDLRepo "rapsshop-project/src/penjualan_dl/repo"
+	jualDLUsecase "rapsshop-project/src/penjualan_dl/service"
+	jualDLHandler "rapsshop-project/src/penjualan_dl/handlers"
+
 	// stock_dl
 	stockDLRepo "rapsshop-project/src/stock_dl/repo"
 	stockDLUsecase "rapsshop-project/src/stock_dl/service"
@@ -93,6 +98,10 @@ func main() {
 	envGrowtopiaRepo := envGrowtopiaRepo.NewEnvGrowtopiaRepo(db)
 	envGrowtopiaUsecase := envGrowtopiaUsecase.NewEnvGrowtopiaUsecase(envGrowtopiaRepo)
 	envGrowtopiaHandler.NewEnvGrowtopiaHandler(api, envGrowtopiaUsecase, jwtMiddleware)
+
+	jualDLRepo := jualDLRepo.NewPenjualanDLRepository(db)
+	jualDLUsecase := jualDLUsecase.NewTestimoniUsecase(jualDLRepo)
+	jualDLHandler.NewPenjualanDLHandler(api, jualDLUsecase, jwtMiddleware)
 
 	pembelianDLHandler.NewPembelianHandler(api)
 

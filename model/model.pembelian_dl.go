@@ -15,13 +15,15 @@ type MidtransData struct {
 	typePayment string 
 	jenisBank string
 	newPembelian entities.PembelianDL
+	harga entities.HargaDL
 }
 
-func NewMidtransData(typePayment string, jenisBank string, newPembelian entities.PembelianDL) *MidtransData {
+func NewMidtransData(typePayment string, jenisBank string, newPembelian entities.PembelianDL, harga entities.HargaDL) *MidtransData {
 	return &MidtransData{
 		typePayment: typePayment,
 		jenisBank: jenisBank,
 		newPembelian: newPembelian,
+		harga: harga,
 	}
 }
 
@@ -33,10 +35,29 @@ func (m *MidtransData) IniDataPembelian() map[string]any {
 	itemDetailsContent := map[string]any{}
 
 	itemDetailsContent["id"] = fmt.Sprintf("order ID: %v", m.newPembelian.ID)
-	itemDetailsContent["price"] = 100
-	itemDetailsContent["quantity"] = m.newPembelian.JumlahDL
-	transactionDetailsContent["gross_amount"] = (itemDetailsContent["price"].(int) * itemDetailsContent["quantity"].(int))  
-	itemDetailsContent["name"] = m.newPembelian.Nama
+	// itemDetailsContent["price"] = m.harga.HargaBeliDL
+	// itemDetailsContent["price"] = m.harga.HargaBeliDL
+	// itemDetailsContent["quantity"] = m.newPembelian.JumlahDL
+	// transactionDetailsContent["gross_amount"] = itemDetailsContent["price"].(int) * itemDetailsContent["quantity"].(int)
+	// transactionDetailsContent["gross_amount"] = ((m.newPembelian.JumlahDL % 100) * m.harga.HargaBeliDL) + ((m.newPembelian.JumlahDL - (m.newPembelian.JumlahDL % 100)) * (m.harga.HargaBeliDL - 100))
+	if m.newPembelian.JumlahDL % 100 == 0 && m.newPembelian.JumlahDL > 0 {
+		itemDetailsContent["price"] = m.harga.HargaBeliBGL
+		itemDetailsContent["quantity"] = m.newPembelian.JumlahDL / 100
+		transactionDetailsContent["gross_amount"] = (m.newPembelian.JumlahDL / 100) * m.harga.HargaBeliBGL
+	} else if m.newPembelian.JumlahDL > 100 {
+		itemDetailsContent["quantity"] = m.newPembelian.JumlahDL
+		itemDetailsContent["price"] = m.harga.HargaBeliDL
+		transactionDetailsContent["gross_amount"] = ((m.newPembelian.JumlahDL % 100) * m.harga.HargaBeliDL) + ((m.newPembelian.JumlahDL - (m.newPembelian.JumlahDL % 100)) * (m.harga.HargaBeliDL - 100))
+	} else if m.newPembelian.JumlahDL > 0 && m.newPembelian.JumlahDL < 100 {
+		itemDetailsContent["quantity"] = m.newPembelian.JumlahDL
+		itemDetailsContent["price"] = m.harga.HargaBeliDL
+		transactionDetailsContent["gross_amount"] = m.newPembelian.JumlahDL * m.harga.HargaBeliDL
+	}
+
+	fmt.Println(itemDetailsContent["quantity"].(int))
+	fmt.Println(itemDetailsContent["price"].(int))
+	fmt.Println(transactionDetailsContent["gross_amount"].(int))
+ 	itemDetailsContent["name"] = m.newPembelian.Nama
 
 	listData = append(listData, itemDetailsContent)
 

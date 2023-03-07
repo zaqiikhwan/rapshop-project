@@ -28,8 +28,9 @@ func InitDatabase() *gorm.DB {
 	var stock_dl entities.StockDL
 	var harga_dl entities.HargaDL
 	var env_growtopia entities.Growtopia
+	var penjualan_dl entities.PenjualanDL
 
-	err = db.AutoMigrate(admin, testimoni, sosmed, stock_dl, harga_dl, env_growtopia)
+	err = db.AutoMigrate(admin, testimoni, sosmed, stock_dl, harga_dl, env_growtopia, penjualan_dl)
 	if err != nil {
 		log.Fatalf("failed to migrate, %s\n", err)
 	}

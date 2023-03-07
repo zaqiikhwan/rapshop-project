@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"rapsshop-project/database/mysql"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 	"rapsshop-project/utils"
@@ -40,8 +41,9 @@ const (
 // 5 -> bri
 // 6 -> bni
 
-type pembelianHandler struct {}
+type pembelianHandler struct {
 
+}
 func NewPembelianHandler(r *gin.RouterGroup){
 	pembelianHandler := &pembelianHandler{}
 	r.POST("/pembelian", pembelianHandler.HandlerPembelian)
@@ -80,7 +82,13 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 		jenisBank = bni
 	}
 
-	midtransData := model.NewMidtransData(paymentType, jenisBank, input)
+	var harga entities.HargaDL
+	if err := mysql.InitDatabase().Order("id desc").First(&harga).Error; err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "price not found", err)
+		return
+	}
+
+	midtransData := model.NewMidtransData(paymentType, jenisBank, input, harga)
 	result := midtransData.IniDataPembelian()
 	data, err := json.Marshal(&result)
 	if err != nil {
@@ -126,6 +134,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 		StatusMessage string `json:"status_message"`
 	}
 
+	fmt.Println(len(body))
 	if len(body) == 115 {
 		var responseBody responsTransaction
 		err := json.Unmarshal(body, &responseBody)
