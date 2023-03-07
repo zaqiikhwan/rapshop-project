@@ -6,8 +6,8 @@ import (
 	"os"
 	"rapsshop-project/database/mysql"
 	"rapsshop-project/middleware"
-	
-	// admin 
+
+	// admin
 	adminHandler "rapsshop-project/src/admin/handlers"
 	adminRepo "rapsshop-project/src/admin/repo"
 	adminUsecase "rapsshop-project/src/admin/service"
@@ -16,19 +16,19 @@ import (
 	pembelianDLHandler "rapsshop-project/src/pembelian_dl/handlers"
 
 	// penjualan dl
+	jualDLHandler "rapsshop-project/src/penjualan_dl/handlers"
 	jualDLRepo "rapsshop-project/src/penjualan_dl/repo"
 	jualDLUsecase "rapsshop-project/src/penjualan_dl/service"
-	jualDLHandler "rapsshop-project/src/penjualan_dl/handlers"
 
 	// stock_dl
+	stockDLHandler "rapsshop-project/src/stock_dl/handlers"
 	stockDLRepo "rapsshop-project/src/stock_dl/repo"
 	stockDLUsecase "rapsshop-project/src/stock_dl/service"
-	stockDLHandler "rapsshop-project/src/stock_dl/handlers"
 
 	// harga_dl
+	hargaDLHandler "rapsshop-project/src/harga_dl/handlers"
 	hargaDLRepo "rapsshop-project/src/harga_dl/repo"
 	hargaDLUsecase "rapsshop-project/src/harga_dl/service"
-	hargaDLHandler "rapsshop-project/src/harga_dl/handlers"
 
 	// testimoni
 	testiHandler "rapsshop-project/src/testimoni/handlers"
@@ -41,9 +41,9 @@ import (
 	sosmedUsecase "rapsshop-project/src/sosmed/service"
 
 	// env growtopia
+	envGrowtopiaHandler "rapsshop-project/src/env_growtopia/handlers"
 	envGrowtopiaRepo "rapsshop-project/src/env_growtopia/repo"
 	envGrowtopiaUsecase "rapsshop-project/src/env_growtopia/service"
-	envGrowtopiaHandler "rapsshop-project/src/env_growtopia/handlers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -65,6 +65,19 @@ func main() {
 	// uncomment for change to release mode
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	r := gin.Default()
+	r.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		if c.Request.Method == "OPTIONS" {
+			c.Writer.Header().Set("Content-Type", "application/json")
+			c.AbortWithStatus(204)
+		} else {
+			c.Next()
+		}
+	})
 	
 	// health check route
 	r.GET("/ping", func(c *gin.Context) {
