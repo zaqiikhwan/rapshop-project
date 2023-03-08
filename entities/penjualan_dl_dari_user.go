@@ -1,5 +1,7 @@
 package entities
 
+import "time"
+
 // user menjual DL dan dibeli oleh admin rapshop
 type PenjualanDL struct {
 	ID uint `gorm:"primaryKey" json:"id"`
@@ -10,4 +12,6 @@ type PenjualanDL struct {
 	NomorTransfer string `json:"nomor_transfer"`
 	StatusPembayaran *int `json:"status"`
 	BuktiDL string `json:"bukti_dl"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

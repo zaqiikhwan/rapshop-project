@@ -1,5 +1,7 @@
 package entities
 
+import "time"
+
 // dl dibeli user
 type PembelianDL struct {
 	ID string `gorm:"primaryKey"`
@@ -13,5 +15,7 @@ type PembelianDL struct {
 	JumlahTransaksi int `json:"jumlah_transaksi"`
 	StatusPembayaran string `json:"status_pembayaran"`
 	StatusPengiriman bool `gorm:"default:false" json:"status_pengiriman"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
