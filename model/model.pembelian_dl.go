@@ -71,10 +71,10 @@ func (m *MidtransData) IniDataPembelian() map[string]any {
 	qrisContent := map[string]string{}
 	if m.typePayment == "gopay" {
 		gopayContent["enable_callback"] = true
-		gopayContent["callback_url"] = "https://midtrans.com"
+		gopayContent["callback_url"] = "https://dlcheap.com"
 	} else if m.typePayment == "shopeepay" {
 		shopeepayContent["enable_callback"] = true
-		shopeepayContent["callback_url"] = "https://midtrans.com"
+		shopeepayContent["callback_url"] = "https://dlcheap.com"
 	} else if m.typePayment == "bank_transfer" {
 		transferBankContent["bank"] = m.jenisBank
 	} else if m.typePayment == "qris" {
