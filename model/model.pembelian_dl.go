@@ -1,14 +1,23 @@
 package model
 
 import (
-	"fmt"
 	"rapsshop-project/entities"
 
-	"github.com/google/uuid"
+	"github.com/midtrans/midtrans-go"
 )
 
 type PembelianDLRepository interface {
 	Create(input entities.PembelianDL) error
+	GetAll() ([]entities.PembelianDL, error)
+	UpdateStatus(input entities.PembelianDL, id string) error
+	GetByID(id string) (entities.PembelianDL, error)
+}
+
+type PembelianDLUsecase interface {
+	CreateDataPembelian(input entities.PembelianDL) error
+	GetAllPembelian() ([]entities.PembelianDL, error)
+	UpdateStatusPembelian(id string) error
+	GetDetailByID(id string)(entities.PembelianDL, error)
 }
 
 type MidtransData struct {
@@ -29,37 +38,49 @@ func NewMidtransData(typePayment string, jenisBank string, newPembelian entities
 
 func (m *MidtransData) IniDataPembelian() map[string]any {
 	transactionDetailsContent := map[string]any{}
-	transactionDetailsContent["order_id"] = fmt.Sprintf("order %v", uuid.New())
-	
-	listData := []map[string]any{}
-	itemDetailsContent := map[string]any{}
-
-	itemDetailsContent["id"] = fmt.Sprintf("order ID: %v", m.newPembelian.ID)
-	// itemDetailsContent["price"] = m.harga.HargaBeliDL
-	// itemDetailsContent["price"] = m.harga.HargaBeliDL
-	// itemDetailsContent["quantity"] = m.newPembelian.JumlahDL
-	// transactionDetailsContent["gross_amount"] = itemDetailsContent["price"].(int) * itemDetailsContent["quantity"].(int)
-	// transactionDetailsContent["gross_amount"] = ((m.newPembelian.JumlahDL % 100) * m.harga.HargaBeliDL) + ((m.newPembelian.JumlahDL - (m.newPembelian.JumlahDL % 100)) * (m.harga.HargaBeliDL - 100))
-	if m.newPembelian.JumlahDL % 100 == 0 && m.newPembelian.JumlahDL > 0 {
-		itemDetailsContent["price"] = m.harga.HargaBeliBGL
-		itemDetailsContent["quantity"] = m.newPembelian.JumlahDL / 100
-		transactionDetailsContent["gross_amount"] = (m.newPembelian.JumlahDL / 100) * m.harga.HargaBeliBGL
+	transactionDetailsContent["order_id"] = m.newPembelian.ID
+	payload := map[string]any{}
+	if m.newPembelian.JumlahDL > 0 && m.newPembelian.JumlahDL < 100 {
+		var Items = []midtrans.ItemDetails{
+			{
+				ID:    m.newPembelian.ID,
+				Price: int64(m.harga.HargaBeliDL) ,
+				Qty:   int32(m.newPembelian.JumlahDL),
+				Name:  "Item DL",
+			},
+		}
+		payload["item_details"] = Items
+		transactionDetailsContent["gross_amount"] = (Items[0].Price * int64(Items[0].Qty)) 
+	} else if  m.newPembelian.JumlahDL % 100 == 0 && m.newPembelian.JumlahDL > 0 {
+		var Items = []midtrans.ItemDetails{
+			{
+				ID:    m.newPembelian.ID,
+				Price: int64(m.harga.HargaBeliBGL) ,
+				Qty:   int32(m.newPembelian.JumlahDL) / 100,
+				Name:  "Item BGL",
+			},
+		}
+		payload["item_details"] = Items
+		transactionDetailsContent["gross_amount"] = (Items[0].Price * int64(Items[0].Qty)) 
 	} else if m.newPembelian.JumlahDL > 100 {
-		itemDetailsContent["quantity"] = m.newPembelian.JumlahDL
-		itemDetailsContent["price"] = m.harga.HargaBeliDL
-		transactionDetailsContent["gross_amount"] = ((m.newPembelian.JumlahDL % 100) * m.harga.HargaBeliDL) + ((m.newPembelian.JumlahDL - (m.newPembelian.JumlahDL % 100)) * (m.harga.HargaBeliDL - 100))
-	} else if m.newPembelian.JumlahDL > 0 && m.newPembelian.JumlahDL < 100 {
-		itemDetailsContent["quantity"] = m.newPembelian.JumlahDL
-		itemDetailsContent["price"] = m.harga.HargaBeliDL
-		transactionDetailsContent["gross_amount"] = m.newPembelian.JumlahDL * m.harga.HargaBeliDL
+		var Items = []midtrans.ItemDetails{
+			{
+				ID:    m.newPembelian.ID,
+				Price: int64(m.harga.HargaBeliBGL) ,
+				Qty:   int32(m.newPembelian.JumlahDL / 100),
+				Name:  "Item BGL",
+			},
+			{
+				ID:    m.newPembelian.ID,
+				Price: int64(m.harga.HargaBeliDL) ,
+				Qty:   int32(m.newPembelian.JumlahDL % 100),
+				Name:  "Item DL",
+			},
+		}
+		payload["item_details"] = Items
+		transactionDetailsContent["gross_amount"] = (Items[0].Price * int64(Items[0].Qty)) + (Items[1].Price * int64(Items[1].Qty))
 	}
-
-	fmt.Println(itemDetailsContent["quantity"].(int))
-	fmt.Println(itemDetailsContent["price"].(int))
-	fmt.Println(transactionDetailsContent["gross_amount"].(int))
- 	itemDetailsContent["name"] = m.newPembelian.Nama
-
-	listData = append(listData, itemDetailsContent)
+	
 
 	customerDetails := map[string]any{}
 	customerDetails["first_name"] = m.newPembelian.Nama
@@ -81,10 +102,10 @@ func (m *MidtransData) IniDataPembelian() map[string]any {
 		qrisContent["acquirer"] = "gopay"
 	}
 
-	payload := map[string]any{}
+
 	payload["payment_type"] = m.typePayment
 	payload["transaction_details"] = transactionDetailsContent
-	payload["item_details"] = listData
+	
 	payload["customer_details"] = customerDetails
 	if len(gopayContent) != 0 {
 		payload["gopay"] = gopayContent

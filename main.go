@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"rapsshop-project/database/mysql"
+	"rapsshop-project/lib"
 	"rapsshop-project/middleware"
 
 	// admin
@@ -14,6 +15,8 @@ import (
 
 	// pembelian
 	pembelianDLHandler "rapsshop-project/src/pembelian_dl/handlers"
+	pembelianDLRepo "rapsshop-project/src/pembelian_dl/repo"
+	pembelianDLUsecase "rapsshop-project/src/pembelian_dl/service"
 
 	// penjualan dl
 	jualDLHandler "rapsshop-project/src/penjualan_dl/handlers"
@@ -56,6 +59,7 @@ func main() {
 	}
 	db := mysql.InitDatabase()
 	jwtMiddleware := middleware.NewAuthMiddleware()
+	midtransDriver := lib.NewMidtransDriver()
 
 	if db == nil {
 		log.Fatal("failed to connect database\n")
@@ -116,7 +120,9 @@ func main() {
 	jualDLUsecase := jualDLUsecase.NewTestimoniUsecase(jualDLRepo)
 	jualDLHandler.NewPenjualanDLHandler(api, jualDLUsecase, jwtMiddleware)
 
-	pembelianDLHandler.NewPembelianHandler(api)
+	pembelianDLRepo := pembelianDLRepo.NewRepoPembelianDL(db)
+	pembelianDLUsecase := pembelianDLUsecase.NewServicePembelianDL(pembelianDLRepo, &midtransDriver)
+	pembelianDLHandler.NewPembelianHandler(api, pembelianDLUsecase)
 
 	r.Run()
 }
