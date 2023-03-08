@@ -20,10 +20,10 @@ import (
 
 const (
 	// Qris Endpoint (production)
-	// productionEnv string = "https://api.midtrans.com/v2/charge"
+	productionEnv string = "https://api.midtrans.com/v2/charge"
 
 	// Qris Endpoint (sandbox)
-	sandboxEnv string = "https://api.sandbox.midtrans.com/v2/charge"
+	// sandboxEnv string = "https://api.sandbox.midtrans.com/v2/charge"
 
 	qris string = "qris"
 	gopay string = "gopay"
@@ -97,7 +97,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	payload := strings.NewReader(string(data))
 	// fmt.Println("json = ", string(data))
 
-	req, err := http.NewRequest("POST", sandboxEnv, payload)
+	req, err := http.NewRequest("POST", productionEnv, payload)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when make new request", err)
 		return
