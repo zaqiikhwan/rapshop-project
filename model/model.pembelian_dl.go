@@ -8,16 +8,17 @@ import (
 
 type PembelianDLRepository interface {
 	Create(input entities.PembelianDL) error
-	GetAll() ([]entities.PembelianDL, error)
+	GetAll(_startInt int , _endInt int) ([]entities.PembelianDL, int, error)
 	UpdateStatus(input entities.PembelianDL, id string) error
 	GetByID(id string) (entities.PembelianDL, error)
 }
 
 type PembelianDLUsecase interface {
 	CreateDataPembelian(input entities.PembelianDL) error
-	GetAllPembelian() ([]entities.PembelianDL, error)
-	UpdateStatusPembelian(id string) error
+	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
+	UpdateStatusPembayaran(id string) error
 	GetDetailByID(id string)(entities.PembelianDL, error)
+	UpdateStatusPengiriman(id string, input entities.PembelianDL) error 
 }
 
 type MidtransData struct {
@@ -36,7 +37,7 @@ func NewMidtransData(typePayment string, jenisBank string, newPembelian entities
 	}
 }
 
-func (m *MidtransData) IniDataPembelian() map[string]any {
+func (m *MidtransData) IniDataPembelian() (map[string]any, int64) {
 	transactionDetailsContent := map[string]any{}
 	transactionDetailsContent["order_id"] = m.newPembelian.ID
 	payload := map[string]any{}
@@ -80,7 +81,6 @@ func (m *MidtransData) IniDataPembelian() map[string]any {
 		payload["item_details"] = Items
 		transactionDetailsContent["gross_amount"] = (Items[0].Price * int64(Items[0].Qty)) + (Items[1].Price * int64(Items[1].Qty))
 	}
-	
 
 	customerDetails := map[string]any{}
 	customerDetails["first_name"] = m.newPembelian.Nama
@@ -116,5 +116,5 @@ func (m *MidtransData) IniDataPembelian() map[string]any {
 	} else {
 		payload["qris"] = qrisContent
 	}
-	return payload
+	return payload, transactionDetailsContent["gross_amount"].(int64)
 }

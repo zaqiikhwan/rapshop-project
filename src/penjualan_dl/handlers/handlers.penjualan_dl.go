@@ -55,12 +55,26 @@ func (pdlh *penjualanDLHandler) CreateNewPenjualan(c *gin.Context) {
 }
 
 func (pdlh *penjualanDLHandler) GetAllPenjualan(c *gin.Context) {
-	allData, err := pdlh.PenjualanDLUsecase.GetAll()
+	_start := c.Query("_start")
+	_end := c.Query("_end")
+
+	_startInt, err := strconv.Atoi(_start)
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when convert str to int", err)
+		return
+	}
+
+	_endInt, err := strconv.Atoi(_end)
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when convert str to int", err)
+		return
+	}
+	allData, len, err := pdlh.PenjualanDLUsecase.GetAll(_startInt, _endInt)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch all data", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", allData)
+	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", gin.H{"data": allData,"total": len})
 }
 
 func (pdlh *penjualanDLHandler) GetDetailPenjualan(c *gin.Context) {

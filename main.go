@@ -122,7 +122,7 @@ func main() {
 
 	pembelianDLRepo := pembelianDLRepo.NewRepoPembelianDL(db)
 	pembelianDLUsecase := pembelianDLUsecase.NewServicePembelianDL(pembelianDLRepo, &midtransDriver)
-	pembelianDLHandler.NewPembelianHandler(api, pembelianDLUsecase)
+	pembelianDLHandler.NewPembelianHandler(api, pembelianDLUsecase, jwtMiddleware)
 
 	r.Run()
 }

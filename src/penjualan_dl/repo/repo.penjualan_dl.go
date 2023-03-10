@@ -22,12 +22,17 @@ func (pdlr *penjualanDLRepository) Create(input entities.PenjualanDL) error {
 	return nil
 }
 
-func (pdlr *penjualanDLRepository) GetAll() ([]entities.PenjualanDL, error) {
+func (pdlr *penjualanDLRepository) GetAll(_startInt int, _endInt int) ([]entities.PenjualanDL, int,error) {
 	var allPenjualan []entities.PenjualanDL
-	if err := pdlr.db.Find(&allPenjualan).Error; err != nil {
-		return allPenjualan, err
+	var lenData []entities.PenjualanDL
+	if err := pdlr.db.Find(&lenData).Error; err != nil {
+		return allPenjualan, 0, err
 	}
-	return allPenjualan, nil
+
+	if err := pdlr.db.Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPenjualan).Error; err != nil {
+		return allPenjualan, 0, err
+	}
+	return allPenjualan, len(lenData), nil
 }
 
 func (pdlr *penjualanDLRepository) GetByID(id uint) (entities.PenjualanDL, error) {

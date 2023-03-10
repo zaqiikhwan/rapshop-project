@@ -12,7 +12,7 @@ type PembelianDL struct {
 	JumlahDL int `json:"jumlah_dl"` 
 	WA string `gorm:"size:20" json:"wa"`
 	MetodeTransfer int `json:"metode_transfer"`
-	JumlahTransaksi int `json:"jumlah_transaksi"`
+	JumlahTransaksi int64 `json:"jumlah_transaksi"`
 	StatusPembayaran string `json:"status_pembayaran"`
 	StatusPengiriman bool `gorm:"default:false" json:"status_pengiriman"`
 	CreatedAt time.Time `json:"created_at"`

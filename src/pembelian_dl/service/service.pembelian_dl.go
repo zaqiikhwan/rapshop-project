@@ -37,16 +37,16 @@ func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) 
 	return nil
 }
 
-func (spdl *servicePembelianDL) GetAllPembelian() ([]entities.PembelianDL, error) {
-	allData, err := spdl.RepoPembelianDL.GetAll()
+func (spdl *servicePembelianDL) GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error) {
+	allData, lenData, err := spdl.RepoPembelianDL.GetAll(_startInt, _endInt)
 	if err != nil {
-		return allData, err
+		return allData, lenData, err
 	}
 
-	return allData, nil
+	return allData, lenData, nil
 }
 
-func(spdl *servicePembelianDL) UpdateStatusPembelian(id string) error {
+func(spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 	midtransReport, err := spdl.midtransCoreClient.HandleNotification(id)
 	if err != nil {
 		return err
@@ -73,6 +73,16 @@ func(spdl *servicePembelianDL) UpdateStatusPembelian(id string) error {
 		}
 	}
 	if err := spdl.RepoPembelianDL.UpdateStatus(dataPenjualan, id); err != nil {
+		return err
+	}
+	return nil
+}
+
+func(spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities.PembelianDL) error {
+	statusKirim := entities.PembelianDL {
+		StatusPengiriman: input.StatusPengiriman,
+	}
+	if err := spdl.RepoPembelianDL.UpdateStatus(statusKirim, id); err != nil {
 		return err
 	}
 	return nil

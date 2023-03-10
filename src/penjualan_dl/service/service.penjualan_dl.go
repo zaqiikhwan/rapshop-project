@@ -50,14 +50,14 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 	return nil
 }
 
-func (pdlu *penjualanDLUsecase) GetAll() ([]entities.PenjualanDL, error) {
-	allPenjualan, err := pdlu.PenjualanDLRepository.GetAll()
+func (pdlu *penjualanDLUsecase) GetAll(_startInt int, _endInt int) ([]entities.PenjualanDL, int,error) {
+	allPenjualan, lenData, err := pdlu.PenjualanDLRepository.GetAll(_startInt, _endInt)
 
 	if err != nil {
-		return allPenjualan, err
+		return allPenjualan, lenData, err
 	}
 
-	return allPenjualan, nil
+	return allPenjualan, lenData, nil
 }
 
 func (pdlu *penjualanDLUsecase) GetByID(id uint) (entities.PenjualanDL, error) {

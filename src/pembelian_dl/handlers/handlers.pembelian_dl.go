@@ -12,6 +12,7 @@ import (
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 	"rapsshop-project/utils"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -36,13 +37,14 @@ const (
 type pembelianHandler struct {
 	ServicePembelianDL model.PembelianDLUsecase
 }
-func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsecase){
+func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsecase, jwtMiddleware gin.HandlerFunc){
 	pembelianHandler := &pembelianHandler{ServicePembelianDL: usecaseBeliDL}
 	r.POST("/pembelian", pembelianHandler.HandlerPembelian)
-	r.GET("/pembelians", pembelianHandler.GetAllDataPembelian)
-	r.GET("/pembelian/:id", pembelianHandler.GetDetailPembelian)
 	r.POST("/pembelian/status", pembelianHandler.HandlerStatus)
-	r.GET("/status", pembelianHandler.GetStatus)
+	r.GET("/pembelians", pembelianHandler.GetAllDataPembelian)
+	r.GET("/pembelian/:id", pembelianHandler.GetDetailPembelian) // detail data dari database
+	r.GET("/pembelian/status/:id", pembelianHandler.GetStatus) // detail status dari midtrans
+	r.PATCH("/pembelian/:id", jwtMiddleware,pembelianHandler.UpdateStatusPengiriman)
 }
 
 // catetan!!
@@ -87,7 +89,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	// https://api.sandbox.midtrans.com/v2/96d23a08-bdb5-4282-ae3a-6cfaa1eed867/status
 
 	midtransData := model.NewMidtransData(paymentType, jenisBank, input, harga)
-	result := midtransData.IniDataPembelian()
+	result, totalTransaksi := midtransData.IniDataPembelian()
 	data, err := json.Marshal(&result)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when change data to json", err)
@@ -152,6 +154,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 		return
 	}
 
+	input.JumlahTransaksi = totalTransaksi
 	if err := ph.ServicePembelianDL.CreateDataPembelian(input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed create data penmbelian to database", err)
 		return
@@ -172,7 +175,7 @@ func (ph *pembelianHandler) HandlerStatus(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "order_id not found", nil)
 		return
 	}
-	if err := ph.ServicePembelianDL.UpdateStatusPembelian(orderId); err != nil {
+	if err := ph.ServicePembelianDL.UpdateStatusPembayaran(orderId); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed update status pembelian", err)
 		return
 	}
@@ -180,22 +183,38 @@ func (ph *pembelianHandler) HandlerStatus(c *gin.Context) {
 }
 
 func (ph *pembelianHandler) GetAllDataPembelian(c *gin.Context) {
-	allData, err := ph.ServicePembelianDL.GetAllPembelian()
+	_start := c.Query("_start")
+	_end := c.Query("_end")
+
+	_startInt, err := strconv.Atoi(_start)
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when convert str to int", err)
+		return
+	}
+
+	_endInt, err := strconv.Atoi(_end)
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when convert str to int", err)
+		return
+	}
+
+	allData, lenData, err := ph.ServicePembelianDL.GetAllPembelian(_startInt, _endInt)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when fetch all data", err)
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", allData)
+	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", gin.H{"data": allData,"total": lenData})
 }
 
 func (ph *pembelianHandler) GetStatus(c *gin.Context) {
-	req, err := http.NewRequest("GET", "https://api.sandbox.midtrans.com/v2/96d23a08-bdb5-4282-ae3a-6cfaa1eed867/status", nil)
+	id := c.Param("id")
+	linkRequest := fmt.Sprintf("https://api.midtrans.com/v2/%s/status", id)
+	req, err := http.NewRequest("GET", linkRequest, nil)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when make new request", err)
 		return
 	}
-
 
 	// add header key "Accept" and value "application/json"
 	req.Header.Add("Accept", "application/json")
@@ -223,7 +242,7 @@ func (ph *pembelianHandler) GetStatus(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", responseBody)
+	utils.SuccessResponse(c, http.StatusOK, "transaction found", responseBody)
 }
 
 func (ph *pembelianHandler) GetDetailPembelian(c *gin.Context) {
@@ -235,4 +254,22 @@ func (ph *pembelianHandler) GetDetailPembelian(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", allData)
+}
+
+func (ph *pembelianHandler) UpdateStatusPengiriman(c *gin.Context) {
+	id := c.Param("id")
+
+	var input entities.PembelianDL
+
+	if err := c.BindJSON(&input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "bad request for binding input", err)
+		return
+	}
+
+	if err := ph.ServicePembelianDL.UpdateStatusPengiriman(id, input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed update data status pengiriman", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success udpate data pengiriman", input.StatusPengiriman)
 }
