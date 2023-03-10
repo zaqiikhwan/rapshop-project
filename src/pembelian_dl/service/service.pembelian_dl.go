@@ -3,7 +3,8 @@ package service
 import (
 	"rapsshop-project/entities"
 	"rapsshop-project/lib"
-	"rapsshop-project/model"	
+	"rapsshop-project/model"
+	"time"
 )
 
 type servicePembelianDL struct {
@@ -21,6 +22,8 @@ func NewServicePembelianDL(repoBeliDL model.PembelianDLRepository, ca *lib.CoreA
 }
 
 func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) error {
+	location := time.FixedZone("UTC+7", 7*60*60)
+	GMT_7 := time.Now().In(location)
 	newPembelian := entities.PembelianDL{
 		ID: input.ID,
 		World: input.World,
@@ -31,6 +34,7 @@ func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) 
 		WA: input.WA,
 		MetodeTransfer: input.MetodeTransfer,
 		JumlahTransaksi: input.JumlahTransaksi,
+		CreatedAt: GMT_7,
 	}
 
 	if err := spdl.RepoPembelianDL.Create(newPembelian); err != nil {
