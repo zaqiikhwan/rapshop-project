@@ -6,6 +6,7 @@ import (
 	"os"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
+	"time"
 
 	storage_go "github.com/supabase-community/storage-go"
 )
@@ -34,6 +35,7 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 		return err
 	}
 
+	loc, _ := time.LoadLocation("Asia/Jakarta")
 	// status := 0
 	newPenjualan := entities.PenjualanDL{
 		BuktiDL: os.Getenv("BASE_URL") + image.Filename,
@@ -42,6 +44,7 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 		WA: wa,
 		Transfer: transfer,
 		NomorTransfer: nomorTransfer,
+		CreatedAt: time.Now().In(loc),
 	}
 
 	if err := pdlu.PenjualanDLRepository.Create(newPenjualan); err != nil {
