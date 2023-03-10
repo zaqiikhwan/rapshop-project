@@ -34,7 +34,8 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 	if err != nil {
 		return err
 	}
-	// status := 0
+	location := time.FixedZone("UTC+7", 7*60*60)
+	GMT_7 := time.Now().In(location)
 	newPenjualan := entities.PenjualanDL{
 		BuktiDL: os.Getenv("BASE_URL") + image.Filename,
 		JumlahDL: jumlahDL,
@@ -42,7 +43,7 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 		WA: wa,
 		Transfer: transfer,
 		NomorTransfer: nomorTransfer,
-		CreatedAt: time.Now(),
+		CreatedAt: GMT_7,
 	}
 
 	if err := pdlu.PenjualanDLRepository.Create(newPenjualan); err != nil {

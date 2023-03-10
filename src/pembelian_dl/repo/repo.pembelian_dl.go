@@ -36,7 +36,7 @@ func(rp *repoPembelianDL) GetAll(_startInt int, _endInt int) ([]entities.Pembeli
 
 func (rp *repoPembelianDL) GetByID(id string) (entities.PembelianDL, error) {
 	var model entities.PembelianDL
-	if err := rp.db.First(&model).Where("id = ?", id).Take(&model).Error; err != nil {
+	if err := rp.db.Where("id = ?", id).Take(&model).Error; err != nil {
 		return model, err
 	}
 	return model, nil
