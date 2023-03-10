@@ -17,7 +17,7 @@ func NewAdminHandler(r *gin.RouterGroup, sdlh model.StockDLUsecase, jwtMiddlewar
 	stockDLHandler := &stockDLHandler{StockDLUsecase: sdlh}
 	r.POST("/stock", jwtMiddleware, stockDLHandler.CreateNewStock)
 	r.GET("/stocks", stockDLHandler.GetAllStockData)
-	r.GET("/stock", jwtMiddleware, stockDLHandler.GetLatestStockData)
+	r.GET("/stock", stockDLHandler.GetLatestStockData)
 	r.PATCH("/stock", jwtMiddleware, stockDLHandler.UpdateStockData)
 	r.DELETE("/stock", jwtMiddleware, stockDLHandler.DeleteStockData)
 }
