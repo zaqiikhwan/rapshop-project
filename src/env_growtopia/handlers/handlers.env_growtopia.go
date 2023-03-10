@@ -16,7 +16,7 @@ type envGrowtopiaHandler struct {
 func NewEnvGrowtopiaHandler(r *gin.RouterGroup, egh model.GrowtopiaEnvUsecase, jwtMiddleware gin.HandlerFunc) {
 	envGrowtopiaHandler := &envGrowtopiaHandler{EnvGrowtopiaUsecase: egh}
 	r.POST("/env", jwtMiddleware, envGrowtopiaHandler.CreateNewEnv)
-	r.GET("/env", jwtMiddleware, envGrowtopiaHandler.GetLatestEnv)
+	r.GET("/env", envGrowtopiaHandler.GetLatestEnv)
 	r.PATCH("/env", jwtMiddleware, envGrowtopiaHandler.UpdateLatestEnv)
 }
 

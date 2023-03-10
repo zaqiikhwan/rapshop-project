@@ -33,6 +33,12 @@ const (
 	bri = "bri"
 	bni = "bni"
 )
+// ada yg user yg jwtnya perlu diilangin (done)
+// pembelian dl ditampilin yg sukses aja (ongoing)
+// + stock DL ()
+// 2 parameter, harga kulakan per biji, sama total dl
+// stock dl dikurangin ketika transaksi dl udah selesai
+// dana / ovo
 
 type pembelianHandler struct {
 	ServicePembelianDL model.PembelianDLUsecase
