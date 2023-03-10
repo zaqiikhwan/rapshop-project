@@ -28,7 +28,7 @@ func(rp *repoPembelianDL) GetAll(_startInt int, _endInt int) ([]entities.Pembeli
 	if err := rp.db.Order("created_at desc").Where("status_pembayaran = ?", "success").Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPembelian).Error; err != nil {
 		return allPembelian, 0, err
 	}
-	if err := rp.db.Find(&lenData).Error; err != nil {
+	if err := rp.db.Where("status_pembayaran = ?", "success").Find(&lenData).Error; err != nil {
 		return allPembelian, 0, err
 	}
 	return allPembelian, len(lenData), nil

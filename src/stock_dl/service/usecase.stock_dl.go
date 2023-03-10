@@ -19,6 +19,7 @@ func (sdlu *stockDLUsecase) CreateNewStock(input *model.InputStockDL) error {
 		StockDL: input.StockDL,
 		HargaJualDL: input.HargaJualDL,
 		HargaBeliDL: input.HargaBeliDL,
+		HargaBeliBGL: input.HargaBeliBGL,
 		Waktu: time.Now(),
 	}
 	if err := sdlu.StockDLRepository.Create(newStock); err != nil {
@@ -57,6 +58,7 @@ func (sdlu *stockDLUsecase) UpdateTambahStock(input *model.InputStockDL) (entiti
 		Profit: input.Profit,
 		HargaJualDL: input.HargaJualDL,
 		HargaBeliDL: input.HargaBeliDL,
+		HargaBeliBGL: input.HargaBeliBGL,
 		StockDL: stock.StockDL + input.StockDL, // next aku perlu gimana caranya stock bisa service sesuai permintaan client
 	}
 

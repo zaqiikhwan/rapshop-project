@@ -56,7 +56,7 @@ func (m *MidtransData) IniDataPembelian() (map[string]any, int64) {
 		var Items = []midtrans.ItemDetails{
 			{
 				ID:    m.newPembelian.ID,
-				Price: int64((m.harga.HargaBeliDL - 100) * 100) ,
+				Price: int64(m.harga.HargaBeliBGL) ,
 				Qty:   int32(m.newPembelian.JumlahDL) / 100,
 				Name:  "Item BGL",
 			},
@@ -67,7 +67,7 @@ func (m *MidtransData) IniDataPembelian() (map[string]any, int64) {
 		var Items = []midtrans.ItemDetails{
 			{
 				ID:    m.newPembelian.ID,
-				Price: int64((m.harga.HargaBeliDL - 100) * 100) ,
+				Price: int64(m.harga.HargaBeliBGL) ,
 				Qty:   int32(m.newPembelian.JumlahDL / 100),
 				Name:  "Item BGL",
 			},
