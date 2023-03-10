@@ -14,7 +14,7 @@ type PembelianDL struct {
 	MetodeTransfer int `json:"metode_transfer"`
 	JumlahTransaksi int64 `json:"jumlah_transaksi"`
 	StatusPembayaran string `json:"status_pembayaran"`
-	StatusPengiriman bool `gorm:"default:false" json:"status_pengiriman"`
+	StatusPengiriman *bool `gorm:"default:false" json:"status_pengiriman"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

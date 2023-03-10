@@ -10,7 +10,7 @@ type PenjualanDL struct {
 	WA string `json:"wa"`
 	Transfer string `json:"transfer"`
 	NomorTransfer string `json:"nomor_transfer"`
-	StatusPembayaran *int `json:"status"`
+	StatusPembayaran *int `gorm:"default:0" json:"status"`
 	BuktiDL string `json:"bukti_dl"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

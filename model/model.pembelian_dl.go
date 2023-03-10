@@ -25,10 +25,10 @@ type MidtransData struct {
 	typePayment string 
 	jenisBank string
 	newPembelian entities.PembelianDL
-	harga entities.HargaDL
+	harga entities.StockDL
 }
 
-func NewMidtransData(typePayment string, jenisBank string, newPembelian entities.PembelianDL, harga entities.HargaDL) *MidtransData {
+func NewMidtransData(typePayment string, jenisBank string, newPembelian entities.PembelianDL, harga entities.StockDL) *MidtransData {
 	return &MidtransData{
 		typePayment: typePayment,
 		jenisBank: jenisBank,
@@ -56,7 +56,7 @@ func (m *MidtransData) IniDataPembelian() (map[string]any, int64) {
 		var Items = []midtrans.ItemDetails{
 			{
 				ID:    m.newPembelian.ID,
-				Price: int64(m.harga.HargaBeliBGL) ,
+				Price: int64((m.harga.HargaBeliDL - 100) * 100) ,
 				Qty:   int32(m.newPembelian.JumlahDL) / 100,
 				Name:  "Item BGL",
 			},
@@ -67,7 +67,7 @@ func (m *MidtransData) IniDataPembelian() (map[string]any, int64) {
 		var Items = []midtrans.ItemDetails{
 			{
 				ID:    m.newPembelian.ID,
-				Price: int64(m.harga.HargaBeliBGL) ,
+				Price: int64((m.harga.HargaBeliDL - 100) * 100) ,
 				Qty:   int32(m.newPembelian.JumlahDL / 100),
 				Name:  "Item BGL",
 			},

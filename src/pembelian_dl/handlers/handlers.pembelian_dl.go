@@ -20,12 +20,6 @@ import (
 )
 
 const (
-	// Qris Endpoint (production)
-	productionEnv string = "https://api.midtrans.com/v2/charge"
-
-	// Qris Endpoint (sandbox)
-	// sandboxEnv string = "https://api.sandbox.midtrans.com/v2/charge"
-
 	qris string = "qris"
 	gopay string = "gopay"
 	shopeepay = "shopeepay"
@@ -33,12 +27,6 @@ const (
 	bri = "bri"
 	bni = "bni"
 )
-// ada yg user yg jwtnya perlu diilangin (done)
-// pembelian dl ditampilin yg sukses aja (ongoing)
-// + stock DL ()
-// 2 parameter, harga kulakan per biji, sama total dl
-// stock dl dikurangin ketika transaksi dl udah selesai
-// dana / ovo
 
 type pembelianHandler struct {
 	ServicePembelianDL model.PembelianDLUsecase
@@ -47,7 +35,7 @@ func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsec
 	pembelianHandler := &pembelianHandler{ServicePembelianDL: usecaseBeliDL}
 	r.POST("/pembelian", pembelianHandler.HandlerPembelian)
 	r.POST("/pembelian/status", pembelianHandler.HandlerStatus)
-	r.GET("/pembelians", pembelianHandler.GetAllDataPembelian)
+	r.GET("/pembelians",jwtMiddleware ,pembelianHandler.GetAllDataPembelian)
 	r.GET("/pembelian/:id", pembelianHandler.GetDetailPembelian) // detail data dari database
 	r.GET("/pembelian/status/:id", pembelianHandler.GetStatus) // detail status dari midtrans
 	r.PATCH("/pembelian/:id", jwtMiddleware,pembelianHandler.UpdateStatusPengiriman)
@@ -86,7 +74,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 		jenisBank = bni
 	}
 
-	var harga entities.HargaDL
+	var harga entities.StockDL
 	if err := mysql.InitDatabase().Order("id desc").First(&harga).Error; err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "price not found", err)
 		return
@@ -104,21 +92,19 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 
 	payload := strings.NewReader(string(data))
 	// fmt.Println("json = ", string(data))
+	fmt.Println(os.Getenv("MIDTRANS"))
 
-	req, err := http.NewRequest("POST", productionEnv, payload)
+	req, err := http.NewRequest("POST", os.Getenv("MIDTRANS"), payload)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when make new request", err)
 		return
 	}
 
 
-	// add header key "Accept" and value "application/json"
 	req.Header.Add("Accept", "application/json")
-	// add header key "Content-Type, "application/json""
 	req.Header.Add("Content-Type", "application/json")
-
-
 	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(os.Getenv("AUTHORIZATION_VALUE")))))
+
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when make new transcation request (issue from server)", err)
@@ -183,6 +169,7 @@ func (ph *pembelianHandler) HandlerStatus(c *gin.Context) {
 	}
 	if err := ph.ServicePembelianDL.UpdateStatusPembayaran(orderId); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed update status pembelian", err)
+		fmt.Println(err.Error())
 		return
 	}
 	utils.SuccessResponse(c, http.StatusOK, "successfully update status pembelian", nil)
@@ -277,5 +264,5 @@ func (ph *pembelianHandler) UpdateStatusPengiriman(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "success udpate data pengiriman", input.StatusPengiriman)
+	utils.SuccessResponse(c, http.StatusOK, "success update data pengiriman", input.StatusPengiriman)
 }

@@ -121,7 +121,7 @@ func main() {
 	jualDLHandler.NewPenjualanDLHandler(api, jualDLUsecase, jwtMiddleware)
 
 	pembelianDLRepo := pembelianDLRepo.NewRepoPembelianDL(db)
-	pembelianDLUsecase := pembelianDLUsecase.NewServicePembelianDL(pembelianDLRepo, &midtransDriver)
+	pembelianDLUsecase := pembelianDLUsecase.NewServicePembelianDL(pembelianDLRepo, &midtransDriver, stockDLUsecase)
 	pembelianDLHandler.NewPembelianHandler(api, pembelianDLUsecase, jwtMiddleware)
 
 	r.Run()

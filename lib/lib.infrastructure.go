@@ -16,6 +16,7 @@ func NewMidtransDriver() CoreApi {
 }
 
 func (c *CoreApi) HandleNotification(id string) (*coreapi.TransactionStatusResponse, error) {
+	// penting buat diubah
 	c.ca.New(os.Getenv("AUTHORIZATION_VALUE"), midtrans.Production)
 
 	midtransReport, err := c.ca.CheckTransaction(id)
@@ -25,9 +26,3 @@ func (c *CoreApi) HandleNotification(id string) (*coreapi.TransactionStatusRespo
 
 	return midtransReport, nil
 }
-
-// func (c *CoreApi) GetDetailAction(id string) (*coreapi.PaymentAccountResponse, error) {
-// 	c.ca.New(os.Getenv("AUTHORIZATION_VALUE"), midtrans.Sandbox)
-
-// 	midtrans, err := c.ca.ChargeTransaction()
-// }

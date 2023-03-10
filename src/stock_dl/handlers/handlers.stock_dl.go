@@ -67,7 +67,7 @@ func(sdlh *stockDLHandler) UpdateStockData(c *gin.Context) {
 		return
 	}
 
-	result, err := sdlh.StockDLUsecase.UpdateStock(&updateStock)
+	result, err := sdlh.StockDLUsecase.UpdateTambahStock(&updateStock)
 
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed to update stock data", err)

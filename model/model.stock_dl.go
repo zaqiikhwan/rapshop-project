@@ -6,6 +6,8 @@ import "rapsshop-project/entities"
 type InputStockDL struct {
 	StockDL int `json:"stock_dl"`
 	Profit  int `json:"profit"`
+	HargaJualDL int `json:"harga_jual_dl"`
+	HargaBeliDL int `json:"harga_beli_dl"`
 }
 
 type StockDLRepository interface {
@@ -20,6 +22,7 @@ type StockDLUsecase interface {
 	CreateNewStock(input *InputStockDL) error
 	GetAllStock() ([]entities.StockDL, error) // need paginate implement later
 	GetLatestDataStock() (entities.StockDL, error)
-	UpdateStock(input *InputStockDL) (entities.StockDL, error)
+	UpdateTambahStock(input *InputStockDL) (entities.StockDL, error)
+	UpdateKurangiStock(input *InputStockDL) (entities.StockDL, error)
 	DeleteStock() error
 }

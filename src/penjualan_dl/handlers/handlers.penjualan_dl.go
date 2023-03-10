@@ -38,7 +38,7 @@ func (pdlh *penjualanDLHandler) CreateNewPenjualan(c *gin.Context) {
 		return
 	}
 
-	var harga entities.HargaDL
+	var harga entities.StockDL
 	if err := mysql.InitDatabase().Order("id desc").First(&harga).Error; err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "price not found", err)
 		return

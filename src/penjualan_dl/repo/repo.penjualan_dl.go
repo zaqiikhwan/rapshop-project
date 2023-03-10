@@ -29,7 +29,7 @@ func (pdlr *penjualanDLRepository) GetAll(_startInt int, _endInt int) ([]entitie
 		return allPenjualan, 0, err
 	}
 
-	if err := pdlr.db.Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPenjualan).Error; err != nil {
+	if err := pdlr.db.Order("created_at desc").Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPenjualan).Error; err != nil {
 		return allPenjualan, 0, err
 	}
 	return allPenjualan, len(lenData), nil

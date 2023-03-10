@@ -8,12 +8,14 @@ import (
 
 type servicePembelianDL struct {
 	RepoPembelianDL model.PembelianDLRepository
+	ServiceStockDL model.StockDLUsecase
 	midtransCoreClient *lib.CoreApi
 }
 
-func NewServicePembelianDL(repoBeliDL model.PembelianDLRepository, ca *lib.CoreApi) model.PembelianDLUsecase {
+func NewServicePembelianDL(repoBeliDL model.PembelianDLRepository, ca *lib.CoreApi, serviceStock model.StockDLUsecase) model.PembelianDLUsecase {
 	return &servicePembelianDL{
 		RepoPembelianDL: repoBeliDL,
+		ServiceStockDL: serviceStock,
 		midtransCoreClient: ca,
 	}
 }
@@ -61,9 +63,21 @@ func(spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 				dataPenjualan.StatusPembayaran = "challange"
 			} else if midtransReport.FraudStatus == "accept" {
 				dataPenjualan.StatusPembayaran = "success"
+				kurangiStock := model.InputStockDL {
+					StockDL: dataPenjualan.JumlahDL,
+				}
+				if _,err := spdl.ServiceStockDL.UpdateKurangiStock(&kurangiStock); err != nil {
+					return err
+				}
 			}
 		} else if midtransReport.TransactionStatus == "settlement" {
 			dataPenjualan.StatusPembayaran = "success"
+			kurangiStock := model.InputStockDL {
+				StockDL: dataPenjualan.JumlahDL,
+			}
+			if _,err := spdl.ServiceStockDL.UpdateKurangiStock(&kurangiStock); err != nil {
+				return err
+			}
 		} else if midtransReport.TransactionStatus == "deny" {
 			dataPenjualan.StatusPembayaran = "deny"
 		} else if midtransReport.TransactionStatus == "cancel" || midtransReport.TransactionStatus == "expire" {
@@ -72,9 +86,10 @@ func(spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 			dataPenjualan.StatusPembayaran = "pending"
 		}
 	}
+	
 	if err := spdl.RepoPembelianDL.UpdateStatus(dataPenjualan, id); err != nil {
 		return err
-	}
+	} 
 	return nil
 }
 
