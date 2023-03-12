@@ -13,13 +13,14 @@ import (
 
 type penjualanDLUsecase struct {
 	PenjualanDLRepository model.PenjualanDLRepository
+	StockDLUsecase model.StockDLUsecase
 }
 
-func NewTestimoniUsecase(repoJualDL model.PenjualanDLRepository) model.PenjualanDLUsecase {
-	return &penjualanDLUsecase{PenjualanDLRepository: repoJualDL}
+func NewTestimoniUsecase(repoJualDL model.PenjualanDLRepository, stockDLUsecase model.StockDLUsecase) model.PenjualanDLUsecase {
+	return &penjualanDLUsecase{PenjualanDLRepository: repoJualDL, StockDLUsecase: stockDLUsecase}
 }
 
-func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int, jumlahTransaksi int, wa string, transfer string, nomorTransfer string) error {
+func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int, jumlahTransaksi int, wa string, transfer string, nomorTransfer string, nama string) error {
 
 	client := storage_go.NewClient(os.Getenv("SUPABASE_URL"), os.Getenv("SERVICE_TOKEN"), nil)
 
@@ -37,6 +38,7 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 	location := time.FixedZone("UTC+7", 7*60*60)
 	GMT_7 := time.Now().In(location)
 	newPenjualan := entities.PenjualanDL{
+		Nama: nama,
 		BuktiDL: os.Getenv("BASE_URL") + image.Filename,
 		JumlahDL: jumlahDL,
 		JumlahTransaksi: jumlahTransaksi,
@@ -73,16 +75,39 @@ func (pdlu *penjualanDLUsecase) GetByID(id uint) (entities.PenjualanDL, error) {
 }
 
 func (pdlu *penjualanDLUsecase) UpdateByID(id uint, input entities.PenjualanDL) (entities.PenjualanDL, error) {
-	updateStatus := entities.PenjualanDL{
-		StatusPembayaran: input.StatusPembayaran,
+	detail, err := pdlu.PenjualanDLRepository.GetByID(id)
+
+	if err != nil {
+		return detail, err
 	}
-	err := pdlu.PenjualanDLRepository.UpdateByID(id, updateStatus)
+
+	updateStatus := entities.PenjualanDL{
+		EditorStatus: input.EditorStatus,
+		Status: input.Status,
+	}
+
+	err = pdlu.PenjualanDLRepository.UpdateByID(id, updateStatus)
 	if err != nil {
 		return updateStatus, err
 	}
 
 	updatedData, err := pdlu.PenjualanDLRepository.GetByID(id)
 
+	updateStock := model.InputStockDL {
+		StockDL: updatedData.JumlahDL,
+	}
+	if (*detail.Status == 0 && *updatedData.Status == 1) || (*detail.Status == -1 && *updatedData.Status == 1)  {
+		_, err := pdlu.StockDLUsecase.UpdateTambahStock(&updateStock)
+		if err != nil {
+			return updatedData, err
+		}
+	} else if (*detail.Status == 1 && *updatedData.Status == 0) || (*detail.Status == 1 && *updatedData.Status == -1) {
+		_, err := pdlu.StockDLUsecase.UpdateKurangiStock(&updateStock)
+		if err != nil {
+			return updatedData, err
+		}
+	}
+	
 	if err != nil {
 		return updatedData, err
 	}

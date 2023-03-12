@@ -30,9 +30,10 @@ const (
 
 type pembelianHandler struct {
 	ServicePembelianDL model.PembelianDLUsecase
+	AdminRepository model.AdminRepository
 }
-func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsecase, jwtMiddleware gin.HandlerFunc){
-	pembelianHandler := &pembelianHandler{ServicePembelianDL: usecaseBeliDL}
+func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsecase, adminRepo model.AdminRepository, jwtMiddleware gin.HandlerFunc){
+	pembelianHandler := &pembelianHandler{ServicePembelianDL: usecaseBeliDL, AdminRepository: adminRepo}
 	r.POST("/pembelian", pembelianHandler.HandlerPembelian)
 	r.POST("/pembelian/status", pembelianHandler.HandlerStatus)
 	r.GET("/pembelians",jwtMiddleware ,pembelianHandler.GetAllDataPembelian)
@@ -250,6 +251,18 @@ func (ph *pembelianHandler) GetDetailPembelian(c *gin.Context) {
 }
 
 func (ph *pembelianHandler) UpdateStatusPengiriman(c *gin.Context) {
+	idAdmin := c.MustGet("id").(string)
+
+	if idAdmin == "" {
+		utils.FailureOrErrorResponse(c, http.StatusUnauthorized, "credential not found", errors.New("unathorized access, please login first"))
+		return
+	}
+
+	admin, err := ph.AdminRepository.GetByID(idAdmin)
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "credentials not found", err)
+		return
+	}
 	id := c.Param("id")
 
 	var input entities.PembelianDL
@@ -258,6 +271,8 @@ func (ph *pembelianHandler) UpdateStatusPengiriman(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "bad request for binding input", err)
 		return
 	}
+
+	input.EditorStatus = admin.Username
 
 	if err := ph.ServicePembelianDL.UpdateStatusPengiriman(id, input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed update data status pengiriman", err)

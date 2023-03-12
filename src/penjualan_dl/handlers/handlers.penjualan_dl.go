@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"rapsshop-project/database/mysql"
 	"rapsshop-project/entities"
@@ -14,10 +15,11 @@ import (
 
 type penjualanDLHandler struct {
 	PenjualanDLUsecase model.PenjualanDLUsecase
+	AdminRepository model.AdminRepository
 }
 
-func NewPenjualanDLHandler(r *gin.RouterGroup, pdlh model.PenjualanDLUsecase, jwtMiddleware gin.HandlerFunc) {
-	jualDLHandler := &penjualanDLHandler{PenjualanDLUsecase: pdlh}
+func NewPenjualanDLHandler(r *gin.RouterGroup, pdlh model.PenjualanDLUsecase, adminRepo model.AdminRepository,jwtMiddleware gin.HandlerFunc) {
+	jualDLHandler := &penjualanDLHandler{PenjualanDLUsecase: pdlh,AdminRepository: adminRepo}
 	r.POST("/penjualan", jualDLHandler.CreateNewPenjualan)
 	r.GET("/penjualans", jwtMiddleware, jualDLHandler.GetAllPenjualan)
 	r.GET("/penjualan/:id", jwtMiddleware, jualDLHandler.GetDetailPenjualan)
@@ -31,6 +33,7 @@ func (pdlh *penjualanDLHandler) CreateNewPenjualan(c *gin.Context) {
 	wa := c.PostForm("whatsapp")
 	transfer := c.PostForm("transfer")
 	nomorTransfer := c.PostForm("nomor_transfer")
+	nama := c.PostForm("nama")
 
 	jumlahDL, err := strconv.Atoi(jumlahDLstr)
 	if err != nil {
@@ -46,7 +49,7 @@ func (pdlh *penjualanDLHandler) CreateNewPenjualan(c *gin.Context) {
 
 	// total := harga.HargaJualDL * jumlahDL
 
-	if err := pdlh.PenjualanDLUsecase.Create(image, jumlahDL, (harga.HargaJualDL*jumlahDL), wa, transfer, nomorTransfer); err != nil {
+	if err := pdlh.PenjualanDLUsecase.Create(image, jumlahDL, (harga.HargaJualDL*jumlahDL), wa, transfer, nomorTransfer, nama); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed make new penjualan_dl", err)
 		return
 	}
@@ -100,6 +103,18 @@ func (pdlh *penjualanDLHandler) GetDetailPenjualan(c *gin.Context) {
 }
 
 func (pdlh *penjualanDLHandler) UpdateStatusPenjualan(c *gin.Context) {
+	idAdmin := c.MustGet("id").(string)
+
+	if idAdmin == "" {
+		utils.FailureOrErrorResponse(c, http.StatusUnauthorized, "credential not found", errors.New("unathorized access, please login first"))
+		return
+	}
+
+	admin, err := pdlh.AdminRepository.GetByID(idAdmin)
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "credentials not found", err)
+		return
+	}
 	id := c.Param("id")
 
 	idUint, err := strconv.ParseUint(id, 10, 64)
@@ -115,6 +130,8 @@ func (pdlh *penjualanDLHandler) UpdateStatusPenjualan(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
+
+	input.EditorStatus = admin.Username
 
 	updatedData, err := pdlh.PenjualanDLUsecase.UpdateByID(uint(idUint), input)
 

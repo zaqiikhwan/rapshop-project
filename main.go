@@ -117,12 +117,12 @@ func main() {
 	envGrowtopiaHandler.NewEnvGrowtopiaHandler(api, envGrowtopiaUsecase, jwtMiddleware)
 
 	jualDLRepo := jualDLRepo.NewPenjualanDLRepository(db)
-	jualDLUsecase := jualDLUsecase.NewTestimoniUsecase(jualDLRepo)
-	jualDLHandler.NewPenjualanDLHandler(api, jualDLUsecase, jwtMiddleware)
+	jualDLUsecase := jualDLUsecase.NewTestimoniUsecase(jualDLRepo, stockDLUsecase)
+	jualDLHandler.NewPenjualanDLHandler(api, jualDLUsecase, adminRepo, jwtMiddleware)
 
 	pembelianDLRepo := pembelianDLRepo.NewRepoPembelianDL(db)
 	pembelianDLUsecase := pembelianDLUsecase.NewServicePembelianDL(pembelianDLRepo, &midtransDriver, stockDLUsecase)
-	pembelianDLHandler.NewPembelianHandler(api, pembelianDLUsecase, jwtMiddleware)
+	pembelianDLHandler.NewPembelianHandler(api, pembelianDLUsecase, adminRepo, jwtMiddleware)
 
 	r.Run()
 }

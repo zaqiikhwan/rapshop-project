@@ -15,6 +15,7 @@ type PembelianDL struct {
 	JumlahTransaksi int64 `json:"jumlah_transaksi"`
 	StatusPembayaran string `json:"status_pembayaran"`
 	StatusPengiriman *bool `gorm:"default:false" json:"status_pengiriman"`
+	EditorStatus     string `json:"editor"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

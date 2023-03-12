@@ -99,6 +99,7 @@ func(spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 
 func(spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities.PembelianDL) error {
 	statusKirim := entities.PembelianDL {
+		EditorStatus: input.EditorStatus,
 		StatusPengiriman: input.StatusPengiriman,
 	}
 	if err := spdl.RepoPembelianDL.UpdateStatus(statusKirim, id); err != nil {
