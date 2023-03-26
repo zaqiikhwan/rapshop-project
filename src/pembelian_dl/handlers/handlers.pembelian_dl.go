@@ -37,6 +37,7 @@ func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsec
 	r.POST("/pembelian", pembelianHandler.HandlerPembelian)
 	r.POST("/pembelian/status", pembelianHandler.HandlerStatus)
 	r.GET("/pembelians",jwtMiddleware ,pembelianHandler.GetAllDataPembelian)
+	r.GET("/pembelian/total",jwtMiddleware ,pembelianHandler.GetTotalPembelian)
 	r.GET("/pembelian/:id", pembelianHandler.GetDetailPembelian) // detail data dari database
 	r.GET("/pembelian/status/:id", pembelianHandler.GetStatus) // detail status dari midtrans
 	r.PATCH("/pembelian/:id", jwtMiddleware,pembelianHandler.UpdateStatusPengiriman)
@@ -81,8 +82,6 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 		return
 	}
 
-	// https://api.sandbox.midtrans.com/v2/96d23a08-bdb5-4282-ae3a-6cfaa1eed867/status
-
 	midtransData := model.NewMidtransData(paymentType, jenisBank, input, harga)
 	result, totalTransaksi := midtransData.IniDataPembelian()
 	data, err := json.Marshal(&result)
@@ -92,15 +91,12 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	}
 
 	payload := strings.NewReader(string(data))
-	// fmt.Println("json = ", string(data))
-	fmt.Println(os.Getenv("MIDTRANS"))
 
 	req, err := http.NewRequest("POST", os.Getenv("MIDTRANS"), payload)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when make new request", err)
 		return
 	}
-
 
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
@@ -125,6 +121,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	}
 
 	fmt.Println(len(body))
+
 	if len(body) == 115 {
 		var responseBody responsTransaction
 		err := json.Unmarshal(body, &responseBody)
@@ -148,6 +145,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	}
 
 	input.JumlahTransaksi = totalTransaksi
+	input.HargaBeli = harga.HargaBeliDL
 	if err := ph.ServicePembelianDL.CreateDataPembelian(input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed create data penmbelian to database", err)
 		return
@@ -248,6 +246,19 @@ func (ph *pembelianHandler) GetDetailPembelian(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", allData)
+}
+
+func (ph *pembelianHandler) GetTotalPembelian(c *gin.Context) {
+	_date := c.Query("_date")
+
+	rekapBeli, err := ph.ServicePembelianDL.GetTotal(_date)
+
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch total pembelian data", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success fetch total pembelian data", rekapBeli)
 }
 
 func (ph *pembelianHandler) UpdateStatusPengiriman(c *gin.Context) {

@@ -23,8 +23,37 @@ func NewPenjualanDLHandler(r *gin.RouterGroup, pdlh model.PenjualanDLUsecase, ad
 	r.POST("/penjualan", jualDLHandler.CreateNewPenjualan)
 	r.GET("/penjualans", jwtMiddleware, jualDLHandler.GetAllPenjualan)
 	r.GET("/penjualan/:id", jwtMiddleware, jualDLHandler.GetDetailPenjualan)
+	r.GET("/rekapitulasi", jwtMiddleware, jualDLHandler.GetRekapByDate)
+	r.GET("/profit", jwtMiddleware, jualDLHandler.GetProfit)
+	r.GET("/penjualan/total", jwtMiddleware, jualDLHandler.GetTotalPenjualan)
 	r.PATCH("/penjualan/:id", jwtMiddleware, jualDLHandler.UpdateStatusPenjualan)
 	r.DELETE("/penjualan/:id", jwtMiddleware, jualDLHandler.DeletePenjualan)
+}
+
+func (pdlh *penjualanDLHandler) GetRekapByDate(c *gin.Context) {
+	_date := c.Query("_date")
+
+	rekapJual, rekapBeli, err := pdlh.PenjualanDLUsecase.GetByDate(_date)
+
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch rekap all data by date", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success fetch rekap all data by date", map[string]any{"tanggal" : _date, "penjualan": rekapJual, "pembelian": rekapBeli})
+}
+
+func (pdlh *penjualanDLHandler) GetTotalPenjualan(c *gin.Context) {
+	_date := c.Query("_date")
+
+	rekapJual, err := pdlh.PenjualanDLUsecase.GetTotal(_date)
+
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch total penjualan data", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success fetch total penjualan data", rekapJual)
 }
 
 func (pdlh *penjualanDLHandler) CreateNewPenjualan(c *gin.Context) {
@@ -49,7 +78,7 @@ func (pdlh *penjualanDLHandler) CreateNewPenjualan(c *gin.Context) {
 
 	// total := harga.HargaJualDL * jumlahDL
 
-	if err := pdlh.PenjualanDLUsecase.Create(image, jumlahDL, (harga.HargaJualDL*jumlahDL), wa, transfer, nomorTransfer, nama); err != nil {
+	if err := pdlh.PenjualanDLUsecase.Create(image, jumlahDL, (harga.HargaJualDL*jumlahDL), wa, transfer, nomorTransfer, nama, harga.HargaJualDL); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed make new penjualan_dl", err)
 		return
 	}
@@ -100,6 +129,19 @@ func (pdlh *penjualanDLHandler) GetDetailPenjualan(c *gin.Context) {
 		return
 	}
 	utils.SuccessResponse(c, http.StatusOK, "success fetch detail data", detailData)
+}
+
+func (pdlh *penjualanDLHandler) GetProfit(c *gin.Context) {
+	_date := c.Query("_date")
+
+	RekapProfit, err := pdlh.PenjualanDLUsecase.GetProfit(_date)
+
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch profit data", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success fetch profit data", RekapProfit)
 }
 
 func (pdlh *penjualanDLHandler) UpdateStatusPenjualan(c *gin.Context) {

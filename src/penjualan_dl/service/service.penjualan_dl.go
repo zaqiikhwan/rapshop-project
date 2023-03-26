@@ -20,7 +20,7 @@ func NewTestimoniUsecase(repoJualDL model.PenjualanDLRepository, stockDLUsecase 
 	return &penjualanDLUsecase{PenjualanDLRepository: repoJualDL, StockDLUsecase: stockDLUsecase}
 }
 
-func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int, jumlahTransaksi int, wa string, transfer string, nomorTransfer string, nama string) error {
+func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int, jumlahTransaksi int, wa string, transfer string, nomorTransfer string, nama string, hargaJualDL int) error {
 
 	client := storage_go.NewClient(os.Getenv("SUPABASE_URL"), os.Getenv("SERVICE_TOKEN"), nil)
 
@@ -40,6 +40,7 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 	newPenjualan := entities.PenjualanDL{
 		Nama: nama,
 		BuktiDL: os.Getenv("BASE_URL") + image.Filename,
+		HargaJual: hargaJualDL,
 		JumlahDL: jumlahDL,
 		JumlahTransaksi: jumlahTransaksi,
 		WA: wa,
@@ -54,7 +55,7 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 	return nil
 }
 
-func (pdlu *penjualanDLUsecase) GetAll(_startInt int, _endInt int) ([]entities.PenjualanDL, int,error) {
+func (pdlu *penjualanDLUsecase) GetAll(_startInt int, _endInt int) ([]entities.PenjualanDL, int, error) {
 	allPenjualan, lenData, err := pdlu.PenjualanDLRepository.GetAll(_startInt, _endInt)
 
 	if err != nil {
@@ -62,6 +63,36 @@ func (pdlu *penjualanDLUsecase) GetAll(_startInt int, _endInt int) ([]entities.P
 	}
 
 	return allPenjualan, lenData, nil
+}
+
+func (pdlu *penjualanDLUsecase) GetByDate(date string) ([]model.RekapTransaksiPenjualan, []model.RekapTransaksiPembelian, error) {
+	dataPenjualanByDate, rekapPembelian, err := pdlu.PenjualanDLRepository.GetByDate(date)
+
+	if err != nil {
+		return dataPenjualanByDate, rekapPembelian, err
+	}
+
+	return dataPenjualanByDate, rekapPembelian, nil
+}
+
+func (pdlu *penjualanDLUsecase) GetTotal(date string) ([]model.RekapTotalPenjualan, error) {
+	dataPenjualanByDate, err := pdlu.PenjualanDLRepository.GetTotalPenjualan(date)
+
+	if err != nil {
+		return dataPenjualanByDate, err
+	}
+
+	return dataPenjualanByDate, nil
+}
+
+func (pdlu *penjualanDLUsecase) GetProfit(date string) ([]model.RekapProfit, error) {
+	profit, err := pdlu.PenjualanDLRepository.GetProfit(date)
+
+	if err != nil {
+		return profit, err
+	}
+
+	return profit, nil
 }
 
 func (pdlu *penjualanDLUsecase) GetByID(id uint) (entities.PenjualanDL, error) {

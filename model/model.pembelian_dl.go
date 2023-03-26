@@ -6,11 +6,17 @@ import (
 	"github.com/midtrans/midtrans-go"
 )
 
+type RekapTotalPembelian struct {
+	Tanggal string `json:"tanggal"`
+	JumlahDL int `json:"jumlah_dl"`
+}
+
 type PembelianDLRepository interface {
 	Create(input entities.PembelianDL) error
 	GetAll(_startInt int , _endInt int) ([]entities.PembelianDL, int, error)
 	UpdateStatus(input entities.PembelianDL, id string) error
 	GetByID(id string) (entities.PembelianDL, error)
+	GetTotalPembelian(date string) ([]RekapTotalPembelian, error)
 }
 
 type PembelianDLUsecase interface {
@@ -18,6 +24,7 @@ type PembelianDLUsecase interface {
 	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
 	UpdateStatusPembayaran(id string) error
 	GetDetailByID(id string)(entities.PembelianDL, error)
+	GetTotal(date string) ([]RekapTotalPembelian, error)
 	UpdateStatusPengiriman(id string, input entities.PembelianDL) error 
 }
 

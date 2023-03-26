@@ -57,41 +57,41 @@ func(spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 	if err != nil {
 		return err
 	}
-	dataPenjualan, err := spdl.RepoPembelianDL.GetByID(id)
+	dataPembelian, err := spdl.RepoPembelianDL.GetByID(id)
 	if err != nil {
 		return err
 	}
 	if midtransReport != nil {
 		if midtransReport.TransactionStatus == "capture" {
 			if midtransReport.FraudStatus == "challenge" {
-				dataPenjualan.StatusPembayaran = "challange"
+				dataPembelian.StatusPembayaran = "challange"
 			} else if midtransReport.FraudStatus == "accept" {
-				dataPenjualan.StatusPembayaran = "success"
+				dataPembelian.StatusPembayaran = "success"
 				kurangiStock := model.InputStockDL {
-					StockDL: dataPenjualan.JumlahDL,
+					StockDL: dataPembelian.JumlahDL,
 				}
 				if _,err := spdl.ServiceStockDL.UpdateKurangiStock(&kurangiStock); err != nil {
 					return err
 				}
 			}
 		} else if midtransReport.TransactionStatus == "settlement" {
-			dataPenjualan.StatusPembayaran = "success"
+			dataPembelian.StatusPembayaran = "success"
 			kurangiStock := model.InputStockDL {
-				StockDL: dataPenjualan.JumlahDL,
+				StockDL: dataPembelian.JumlahDL,
 			}
 			if _,err := spdl.ServiceStockDL.UpdateKurangiStock(&kurangiStock); err != nil {
 				return err
 			}
 		} else if midtransReport.TransactionStatus == "deny" {
-			dataPenjualan.StatusPembayaran = "deny"
+			dataPembelian.StatusPembayaran = "deny"
 		} else if midtransReport.TransactionStatus == "cancel" || midtransReport.TransactionStatus == "expire" {
-			dataPenjualan.StatusPembayaran = "failure"
+			dataPembelian.StatusPembayaran = "failure"
 		} else if midtransReport.TransactionStatus == "pending" {
-			dataPenjualan.StatusPembayaran = "pending"
+			dataPembelian.StatusPembayaran = "pending"
 		}
 	}
 	
-	if err := spdl.RepoPembelianDL.UpdateStatus(dataPenjualan, id); err != nil {
+	if err := spdl.RepoPembelianDL.UpdateStatus(dataPembelian, id); err != nil {
 		return err
 	} 
 	return nil
@@ -114,5 +114,14 @@ func(spdl *servicePembelianDL) GetDetailByID(id string) (entities.PembelianDL, e
 		return dataPenjualan, err
 	}
 	return dataPenjualan, nil
+}
 
+func (spdl *servicePembelianDL) GetTotal(date string) ([]model.RekapTotalPembelian, error) {
+	dataPembelianByDate, err := spdl.RepoPembelianDL.GetTotalPembelian(date)
+
+	if err != nil {
+		return dataPembelianByDate, err
+	}
+
+	return dataPembelianByDate, nil
 }

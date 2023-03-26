@@ -49,3 +49,40 @@ func (rp *repoPembelianDL) UpdateStatus(input entities.PembelianDL, id string) e
 	}
 	return nil
 }
+
+func (rp *repoPembelianDL) GetTotalPembelian(date string) ([]model.RekapTotalPembelian, error) {
+	var allPembelianByDate []entities.PembelianDL
+
+	var totalPembelianTunggal model.RekapTotalPembelian
+	var totalPembelian []model.RekapTotalPembelian
+
+	query := "%" + date + "%"
+
+	if err := rp.db.Where("created_at LIKE ? and status_pembayaran = ?", query, "success").Find(&allPembelianByDate).Error; err != nil {
+		return totalPembelian, err
+	}
+
+	var arrayTanggalStr []string
+	
+	for _, v := range allPembelianByDate {
+		if len(arrayTanggalStr) == 0 {
+			arrayTanggalStr = append(arrayTanggalStr, v.CreatedAt.String()[0:10])
+		} else if len(arrayTanggalStr) > 0 && arrayTanggalStr[len(arrayTanggalStr) - 1] != v.CreatedAt.String()[0:10] {
+			arrayTanggalStr = append(arrayTanggalStr, v.CreatedAt.String()[0:10])
+		}
+	}
+
+	for i := 0; i < len(arrayTanggalStr); i++ {
+
+		query := "%" + arrayTanggalStr[i] + "%"
+	
+		if err := rp.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ?", query).Scan(&totalPembelianTunggal.JumlahDL).Error; err != nil {
+			return totalPembelian, err
+		}
+
+		totalPembelianTunggal.Tanggal = arrayTanggalStr[i][8:10]
+		totalPembelian = append(totalPembelian, totalPembelianTunggal)
+	}
+	
+	return totalPembelian, nil
+}

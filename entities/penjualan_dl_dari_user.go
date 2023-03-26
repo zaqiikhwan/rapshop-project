@@ -13,6 +13,7 @@ type PenjualanDL struct {
 	NomorTransfer string `json:"nomor_transfer"`
 	Status *int `gorm:"default:0" json:"status"`
 	EditorStatus string `json:"editor"`
+	HargaJual int `json:"harga_jual"`
 	BuktiDL string `json:"bukti_dl"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
