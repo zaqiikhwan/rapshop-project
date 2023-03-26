@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 
@@ -58,25 +59,26 @@ func (rp *repoPembelianDL) GetTotalPembelian(date string) ([]model.RekapTotalPem
 
 	query := "%" + date + "%"
 
-	if err := rp.db.Where("created_at LIKE ? and status_pembayaran = ?", query, "success").Find(&allPembelianByDate).Error; err != nil {
+	if err := rp.db.Select("created_at").Where("created_at LIKE ? order by created_at asc", query).Find(&allPembelianByDate).Error; err != nil {
 		return totalPembelian, err
 	}
 
 	var arrayTanggalStr []string
 	
 	for _, v := range allPembelianByDate {
-		if len(arrayTanggalStr) == 0 {
+		if len(arrayTanggalStr) == 0 && v.CreatedAt.String()[0:10] != "2023-03-11" && v.CreatedAt.String()[0:10] != "2023-03-10" {
 			arrayTanggalStr = append(arrayTanggalStr, v.CreatedAt.String()[0:10])
 		} else if len(arrayTanggalStr) > 0 && arrayTanggalStr[len(arrayTanggalStr) - 1] != v.CreatedAt.String()[0:10] {
 			arrayTanggalStr = append(arrayTanggalStr, v.CreatedAt.String()[0:10])
 		}
 	}
 
+	fmt.Println(arrayTanggalStr)
 	for i := 0; i < len(arrayTanggalStr); i++ {
 
-		query := "%" + arrayTanggalStr[i] + "%"
+		queryDate := "%" + arrayTanggalStr[i] + "%"
 	
-		if err := rp.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ?", query).Scan(&totalPembelianTunggal.JumlahDL).Error; err != nil {
+		if err := rp.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and status_pembayaran = ?", queryDate, "success").Scan(&totalPembelianTunggal.JumlahDL).Error; err != nil {
 			return totalPembelian, err
 		}
 

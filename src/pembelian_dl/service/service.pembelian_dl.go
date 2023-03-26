@@ -32,6 +32,7 @@ func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) 
 		JenisItem: input.JenisItem,
 		JumlahDL: input.JumlahDL,
 		WA: input.WA,
+		HargaBeli: input.HargaBeli,
 		MetodeTransfer: input.MetodeTransfer,
 		JumlahTransaksi: input.JumlahTransaksi,
 		CreatedAt: GMT_7,

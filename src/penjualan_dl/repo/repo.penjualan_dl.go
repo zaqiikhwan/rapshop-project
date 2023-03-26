@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 
@@ -50,11 +51,11 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 
 	query := "%" + date + "%"
 
-	if err := pdlr.db.Where("created_at LIKE ? and status = ?", query, 1).Find(&allPenjualanByDate).Error; err != nil {
+	if err := pdlr.db.Where("created_at LIKE ? and harga_jual != NULL", query).Find(&allPenjualanByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
-	if err := pdlr.db.Where("created_at LIKE ? and status_pembayaran = ?", query, "success").Find(&allPembelianByDate).Error; err != nil {
+	if err := pdlr.db.Where("created_at LIKE ? and status_pembayaran = ? and harga_beli != NULL", query, "success").Find(&allPembelianByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
@@ -73,14 +74,17 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 			arrayHargaBeli = append(arrayHargaBeli, v.HargaBeli)
 		}
 	}
+	fmt.Println(arrayHarga)
+	fmt.Println(arrayHargaBeli)
+
 	
 	for i := 0; i < len(arrayHarga); i++ {
 	
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from penjualan_dls where created_at LIKE ? and harga_jual = ?", query, arrayHarga[i]).Scan(&rekapJualTunggal.JumlahTransaksi).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from penjualan_dls where created_at LIKE ? and harga_jual = ? and status = ?", query, arrayHarga[i], 1).Scan(&rekapJualTunggal.JumlahTransaksi).Error; err != nil {
 			return rekapJual, rekapBeli, err
 		}
 	
-		if err := pdlr.db.Raw("select sum(jumlah_dl) from penjualan_dls where created_at LIKE ? and harga_jual = ?", query, arrayHarga[i]).Scan(&rekapJualTunggal.JumlahDL).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_dl) from penjualan_dls where created_at LIKE ? and harga_jual = ? and status = ?", query, arrayHarga[i], 1).Scan(&rekapJualTunggal.JumlahDL).Error; err != nil {
 			return rekapJual, rekapBeli, err
 		}
 
@@ -112,7 +116,7 @@ func (pdlr *penjualanDLRepository) GetTotalPenjualan(date string) ([]model.Rekap
 
 	query := "%" + date + "%"
 
-	if err := pdlr.db.Where("created_at LIKE ? and status = 1", query).Find(&allPenjualanByDate).Error; err != nil {
+	if err := pdlr.db.Where("created_at LIKE ? order by created_at asc", query).Find(&allPenjualanByDate).Error; err != nil {
 		return totalPenjualan, err
 	}
 
@@ -130,7 +134,7 @@ func (pdlr *penjualanDLRepository) GetTotalPenjualan(date string) ([]model.Rekap
 
 		query := "%" + arrayTanggalStr[i] + "%"
 	
-		if err := pdlr.db.Raw("select sum(jumlah_dl) from penjualan_dls where created_at LIKE ?", query).Scan(&totalPenjualanTunggal.JumlahDL).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_dl) from penjualan_dls where created_at LIKE ? and status = 1", query).Scan(&totalPenjualanTunggal.JumlahDL).Error; err != nil {
 			return totalPenjualan, err
 		}
 
@@ -151,11 +155,11 @@ func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, 
 
 	query := "%" + date + "%"
 
-	if err := pdlr.db.Where("created_at LIKE ? and status = ?", query, 1).Find(&allPenjualanByDate).Error; err != nil {
+	if err := pdlr.db.Where("created_at LIKE ? order by created_at asc", query).Find(&allPenjualanByDate).Error; err != nil {
 		return allProfit, err
 	}
 
-	if err := pdlr.db.Where("created_at LIKE ? and status_pembayaran = ?", query, "success").Find(&allPembelianByDate).Error; err != nil {
+	if err := pdlr.db.Where("created_at LIKE ? order by created_at asc", query).Find(&allPembelianByDate).Error; err != nil {
 		return allProfit, err
 	}
 
@@ -172,23 +176,27 @@ func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, 
 	var arrayTanggalBeli []string
 
 	for _, v := range allPembelianByDate {
-		if len(arrayTanggalBeli) == 0 {
+		if len(arrayTanggalBeli) == 0 && v.CreatedAt.String()[0:10] != "2023-03-11" && v.CreatedAt.String()[0:10] != "2023-03-10" {
 			arrayTanggalBeli = append(arrayTanggalBeli, v.CreatedAt.String()[0:10])
 		} else if len(arrayTanggalBeli) > 0 && arrayTanggalBeli[len(arrayTanggalBeli) - 1] != v.CreatedAt.String()[0:10] {
 			arrayTanggalBeli = append(arrayTanggalBeli, v.CreatedAt.String()[0:10])
 		}
 	}
 
+
 	for i := 0; i < len(arrayTanggalBeli); i++ {
 
 		queryDate := "%" + arrayTanggalBeli[i] + "%"
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from penjualan_dls where created_at LIKE ? ", queryDate).Scan(&eachTransaksi.TransaksiJual).Error; err != nil {
+
+		fmt.Println(queryDate)
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from penjualan_dls where created_at LIKE ? and status = 1", queryDate).Scan(&eachTransaksi.TransaksiJual).Error; err != nil {
 			return allProfit, err
 		}
 
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ?", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and status_pembayaran = 'success'", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
 			return allProfit, err
 		}
+
 
 		eachProfit.Tanggal = arrayTanggalBeli[i][8:10]
 		eachProfit.Profit = eachTransaksi.TransaksiBeli - eachTransaksi.TransaksiJual
