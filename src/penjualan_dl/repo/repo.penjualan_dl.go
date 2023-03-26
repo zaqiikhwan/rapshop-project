@@ -74,8 +74,6 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 			arrayHargaBeli = append(arrayHargaBeli, v.HargaBeli)
 		}
 	}
-	fmt.Println(arrayHarga)
-	fmt.Println(arrayHargaBeli)
 
 	
 	for i := 0; i < len(arrayHarga); i++ {
