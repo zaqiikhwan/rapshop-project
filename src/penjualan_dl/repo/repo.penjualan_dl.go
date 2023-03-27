@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"fmt"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 
@@ -26,7 +25,7 @@ func (pdlr *penjualanDLRepository) Create(input entities.PenjualanDL) error {
 func (pdlr *penjualanDLRepository) GetAll(_startInt int, _endInt int) ([]entities.PenjualanDL, int,error) {
 	var allPenjualan []entities.PenjualanDL
 	var lenData []entities.PenjualanDL
-	if err := pdlr.db.Find(&lenData).Error; err != nil {
+	if err := pdlr.db.Select("id").Find(&lenData).Error; err != nil {
 		return allPenjualan, 0, err
 	}
 
@@ -51,11 +50,11 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 
 	query := "%" + date + "%"
 
-	if err := pdlr.db.Where("created_at LIKE ? and harga_jual != 0", query).Find(&allPenjualanByDate).Error; err != nil {
+	if err := pdlr.db.Select("harga_jual").Where("created_at LIKE ? and (harga_jual != 0 or harga_jual <> NULL)", query).Find(&allPenjualanByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
-	if err := pdlr.db.Where("created_at LIKE ? and harga_beli != 0", query).Find(&allPembelianByDate).Error; err != nil {
+	if err := pdlr.db.Select("harga_beli").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL)", query).Find(&allPembelianByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
@@ -74,16 +73,15 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 			arrayHargaBeli = append(arrayHargaBeli, v.HargaBeli)
 		}
 	}
-
 	
 	for i := 0; i < len(arrayHarga); i++ {
 	
 		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from penjualan_dls where created_at LIKE ? and harga_jual = ? and status = ?", query, arrayHarga[i], 1).Scan(&rekapJualTunggal.JumlahTransaksi).Error; err != nil {
-			return rekapJual, rekapBeli, err
+			rekapJualTunggal.JumlahTransaksi = 0
 		}
 	
 		if err := pdlr.db.Raw("select sum(jumlah_dl) from penjualan_dls where created_at LIKE ? and harga_jual = ? and status = ?", query, arrayHarga[i], 1).Scan(&rekapJualTunggal.JumlahDL).Error; err != nil {
-			return rekapJual, rekapBeli, err
+			rekapJualTunggal.JumlahDL = 0
 		}
 
 		rekapJualTunggal.Rate = arrayHarga[i]
@@ -92,11 +90,11 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 
 	for i := 0; i < len(arrayHargaBeli); i++ {
 		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahTransaksi).Error; err != nil {
-			return rekapJual, rekapBeli, err
+			rekapBeliTunggal.JumlahTransaksi = 0
 		}
 	
 		if err := pdlr.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahDL).Error; err != nil {
-			return rekapJual, rekapBeli, err
+			rekapBeliTunggal.JumlahDL = 0
 		}
 
 		rekapBeliTunggal.Rate = arrayHargaBeli[i]
@@ -114,7 +112,7 @@ func (pdlr *penjualanDLRepository) GetTotalPenjualan(date string) ([]model.Rekap
 
 	query := "%" + date + "%"
 
-	if err := pdlr.db.Where("created_at LIKE ? order by created_at asc", query).Find(&allPenjualanByDate).Error; err != nil {
+	if err := pdlr.db.Select("created_at").Where("created_at LIKE ? order by created_at asc", query).Find(&allPenjualanByDate).Error; err != nil {
 		return totalPenjualan, err
 	}
 
@@ -133,7 +131,7 @@ func (pdlr *penjualanDLRepository) GetTotalPenjualan(date string) ([]model.Rekap
 		query := "%" + arrayTanggalStr[i] + "%"
 	
 		if err := pdlr.db.Raw("select sum(jumlah_dl) from penjualan_dls where created_at LIKE ? and status = 1", query).Scan(&totalPenjualanTunggal.JumlahDL).Error; err != nil {
-			return totalPenjualan, err
+			totalPenjualanTunggal.JumlahDL = 0
 		}
 
 		totalPenjualanTunggal.Tanggal = arrayTanggalStr[i][8:10]
@@ -153,11 +151,11 @@ func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, 
 
 	query := "%" + date + "%"
 
-	if err := pdlr.db.Where("created_at LIKE ? order by created_at asc", query).Find(&allPenjualanByDate).Error; err != nil {
+	if err := pdlr.db.Select("created_at").Where("created_at LIKE ? order by created_at asc", query).Find(&allPenjualanByDate).Error; err != nil {
 		return allProfit, err
 	}
 
-	if err := pdlr.db.Where("created_at LIKE ? order by created_at asc", query).Find(&allPembelianByDate).Error; err != nil {
+	if err := pdlr.db.Select("created_at").Where("created_at LIKE ? order by created_at asc", query).Find(&allPembelianByDate).Error; err != nil {
 		return allProfit, err
 	}
 
@@ -174,7 +172,7 @@ func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, 
 	var arrayTanggalBeli []string
 
 	for _, v := range allPembelianByDate {
-		if len(arrayTanggalBeli) == 0 && v.CreatedAt.String()[0:10] != "2023-03-11" && v.CreatedAt.String()[0:10] != "2023-03-10" {
+		if len(arrayTanggalBeli) == 0 {
 			arrayTanggalBeli = append(arrayTanggalBeli, v.CreatedAt.String()[0:10])
 		} else if len(arrayTanggalBeli) > 0 && arrayTanggalBeli[len(arrayTanggalBeli) - 1] != v.CreatedAt.String()[0:10] {
 			arrayTanggalBeli = append(arrayTanggalBeli, v.CreatedAt.String()[0:10])
@@ -185,16 +183,15 @@ func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, 
 	for i := 0; i < len(arrayTanggalBeli); i++ {
 
 		queryDate := "%" + arrayTanggalBeli[i] + "%"
-
-		fmt.Println(queryDate)
 		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from penjualan_dls where created_at LIKE ? and status = 1", queryDate).Scan(&eachTransaksi.TransaksiJual).Error; err != nil {
-			return allProfit, err
+			eachTransaksi.TransaksiBeli = 0
+			eachTransaksi.TransaksiJual = 0
 		}
 
 		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and status_pembayaran = 'success'", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
-			return allProfit, err
+			eachTransaksi.TransaksiBeli = 0
+			eachTransaksi.TransaksiJual = 0
 		}
-
 
 		eachProfit.Tanggal = arrayTanggalBeli[i][8:10]
 		eachProfit.Profit = eachTransaksi.TransaksiBeli - eachTransaksi.TransaksiJual
@@ -203,7 +200,6 @@ func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, 
 	}
 
 	return allProfit, nil
-
 }
 
 func (pdlr *penjualanDLRepository) GetByID(id uint) (entities.PenjualanDL, error) {

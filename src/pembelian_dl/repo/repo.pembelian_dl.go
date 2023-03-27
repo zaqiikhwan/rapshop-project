@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"fmt"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 
@@ -29,7 +28,7 @@ func(rp *repoPembelianDL) GetAll(_startInt int, _endInt int) ([]entities.Pembeli
 	if err := rp.db.Order("created_at desc").Where("status_pembayaran = ?", "success").Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPembelian).Error; err != nil {
 		return allPembelian, 0, err
 	}
-	if err := rp.db.Where("status_pembayaran = ?", "success").Find(&lenData).Error; err != nil {
+	if err := rp.db.Select("id").Where("status_pembayaran = ?", "success").Find(&lenData).Error; err != nil {
 		return allPembelian, 0, err
 	}
 	return allPembelian, len(lenData), nil
@@ -66,20 +65,19 @@ func (rp *repoPembelianDL) GetTotalPembelian(date string) ([]model.RekapTotalPem
 	var arrayTanggalStr []string
 	
 	for _, v := range allPembelianByDate {
-		if len(arrayTanggalStr) == 0 && v.CreatedAt.String()[0:10] != "2023-03-11" && v.CreatedAt.String()[0:10] != "2023-03-10" {
+		if len(arrayTanggalStr) == 0 {
 			arrayTanggalStr = append(arrayTanggalStr, v.CreatedAt.String()[0:10])
 		} else if len(arrayTanggalStr) > 0 && arrayTanggalStr[len(arrayTanggalStr) - 1] != v.CreatedAt.String()[0:10] {
 			arrayTanggalStr = append(arrayTanggalStr, v.CreatedAt.String()[0:10])
 		}
 	}
 
-	fmt.Println(arrayTanggalStr)
 	for i := 0; i < len(arrayTanggalStr); i++ {
 
 		queryDate := "%" + arrayTanggalStr[i] + "%"
 	
 		if err := rp.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and status_pembayaran = ?", queryDate, "success").Scan(&totalPembelianTunggal.JumlahDL).Error; err != nil {
-			return totalPembelian, err
+			totalPembelianTunggal.JumlahDL = 0
 		}
 
 		totalPembelianTunggal.Tanggal = arrayTanggalStr[i][8:10]
