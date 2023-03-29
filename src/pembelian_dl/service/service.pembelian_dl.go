@@ -24,6 +24,23 @@ func NewServicePembelianDL(repoBeliDL model.PembelianDLRepository, ca *lib.CoreA
 func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) error {
 	location := time.FixedZone("UTC+7", 7*60*60)
 	GMT_7 := time.Now().In(location)
+
+	hargaBeli, err := spdl.ServiceStockDL.GetLatestDataStock()
+
+	if err != nil {
+		return err
+	}
+
+	var jumlahTransaksi int
+
+	if input.JumlahDL > 0 && input.JumlahDL < 100 {
+		jumlahTransaksi = input.JumlahDL * hargaBeli.HargaBeliDL
+	} else if input.JumlahDL % 100 == 0 && input.JumlahDL > 0 {
+		jumlahTransaksi = (input.JumlahDL / 100) * hargaBeli.HargaBeliBGL
+	} else if input.JumlahDL > 100 {
+		jumlahTransaksi = (input.JumlahDL / 100) * hargaBeli.HargaBeliBGL + input.JumlahDL % 100 * hargaBeli.HargaBeliDL
+	}
+
 	newPembelian := entities.PembelianDL{
 		ID: input.ID,
 		World: input.World,
@@ -32,9 +49,9 @@ func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) 
 		JenisItem: input.JenisItem,
 		JumlahDL: input.JumlahDL,
 		WA: input.WA,
-		HargaBeli: input.HargaBeli,
+		HargaBeli: hargaBeli.HargaBeliDL,
 		MetodeTransfer: input.MetodeTransfer,
-		JumlahTransaksi: input.JumlahTransaksi,
+		JumlahTransaksi: int64(jumlahTransaksi),
 		CreatedAt: GMT_7,
 	}
 
@@ -104,6 +121,41 @@ func(spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities.
 		StatusPengiriman: input.StatusPengiriman,
 	}
 	if err := spdl.RepoPembelianDL.UpdateStatus(statusKirim, id); err != nil {
+		return err
+	}
+
+	dataPembelian, err := spdl.RepoPembelianDL.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	kurangiStock := model.InputStockDL {
+		StockDL: dataPembelian.JumlahDL,
+	}
+
+	if *statusKirim.StatusPengiriman {
+		if _,err := spdl.ServiceStockDL.UpdateKurangiStock(&kurangiStock); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func(spdl *servicePembelianDL) UpdateStatusButtonBayar(id string, input entities.PembelianDL) error {
+	statusBayar := entities.PembelianDL {
+		ButtonBayar: input.ButtonBayar,
+	}
+	if err := spdl.RepoPembelianDL.UpdateStatus(statusBayar, id); err != nil {
+		return err
+	}
+	return nil
+}
+
+func(spdl *servicePembelianDL) UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error {
+	statusBayar := entities.PembelianDL {
+		StatusPembayaran: input.StatusPembayaran,
+	}
+	if err := spdl.RepoPembelianDL.UpdateStatus(statusBayar, id); err != nil {
 		return err
 	}
 	return nil

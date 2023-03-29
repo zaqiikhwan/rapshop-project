@@ -13,7 +13,8 @@ type PembelianDL struct {
 	WA string `gorm:"size:20" json:"wa"`
 	MetodeTransfer int `json:"metode_transfer"`
 	JumlahTransaksi int64 `json:"jumlah_transaksi"`
-	StatusPembayaran string `json:"status_pembayaran"`
+	ButtonBayar *bool `gorm:"default:false" json:"button_bayar"`
+	StatusPembayaran string `gorm:"default:belum_dibayar" json:"status_pembayaran"`
 	StatusPengiriman *bool `gorm:"default:false" json:"status_pengiriman"`
 	EditorStatus     string `json:"editor"`
 	HargaBeli int `json:"harga_beli"`

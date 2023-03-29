@@ -26,6 +26,8 @@ type PembelianDLUsecase interface {
 	GetDetailByID(id string)(entities.PembelianDL, error)
 	GetTotal(date string) ([]RekapTotalPembelian, error)
 	UpdateStatusPengiriman(id string, input entities.PembelianDL) error 
+	UpdateStatusButtonBayar(id string, input entities.PembelianDL) error
+	UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error 
 }
 
 type MidtransData struct {

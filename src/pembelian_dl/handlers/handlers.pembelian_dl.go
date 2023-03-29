@@ -17,6 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 const (
@@ -31,16 +32,20 @@ const (
 type pembelianHandler struct {
 	ServicePembelianDL model.PembelianDLUsecase
 	AdminRepository model.AdminRepository
+	PaymentUsecase entities.MetodePembayaranUsecase
 }
-func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsecase, adminRepo model.AdminRepository, jwtMiddleware gin.HandlerFunc){
-	pembelianHandler := &pembelianHandler{ServicePembelianDL: usecaseBeliDL, AdminRepository: adminRepo}
+func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsecase, adminRepo model.AdminRepository, usecasePayment entities.MetodePembayaranUsecase, jwtMiddleware gin.HandlerFunc){
+	pembelianHandler := &pembelianHandler{ServicePembelianDL: usecaseBeliDL, AdminRepository: adminRepo, PaymentUsecase: usecasePayment }
 	r.POST("/pembelian", pembelianHandler.HandlerPembelian)
+	r.POST("/new/pembelian", pembelianHandler.NewHandlerPembelian)
 	r.POST("/pembelian/status", pembelianHandler.HandlerStatus)
 	r.GET("/pembelians",jwtMiddleware ,pembelianHandler.GetAllDataPembelian)
 	r.GET("/pembelian/total",jwtMiddleware ,pembelianHandler.GetTotalPembelian)
 	r.GET("/pembelian/:id", pembelianHandler.GetDetailPembelian) // detail data dari database
 	r.GET("/pembelian/status/:id", pembelianHandler.GetStatus) // detail status dari midtrans
 	r.PATCH("/pembelian/:id", jwtMiddleware,pembelianHandler.UpdateStatusPengiriman)
+	r.PATCH("/pembelian/button/:id", pembelianHandler.NewUpdateButton)
+	r.PATCH("/pembelian/confirm/:id", jwtMiddleware, pembelianHandler.NewUpdateConfirmPayment)
 }
 
 // catetan!!
@@ -154,6 +159,66 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", responseBody)
 }
 
+func (ph *pembelianHandler) NewHandlerPembelian(c *gin.Context) {
+	var input entities.PembelianDL
+
+	if err := c.BindJSON(&input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "bad request for binding input", err)
+		return
+	}
+
+	input.ID = uuid.NewString()
+
+	if err := ph.ServicePembelianDL.CreateDataPembelian(input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed create new data pembelian", err)
+		return
+	}
+
+	paymentMethod, err := ph.PaymentUsecase.GetDetailPembayaranByIndex(input.MetodeTransfer)
+
+	if err == gorm.ErrRecordNotFound {
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "payment method not found", err)
+		return
+	}
+	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", paymentMethod)
+}
+
+func (ph *pembelianHandler) NewUpdateButton(c *gin.Context) {
+	id := c.Param("id")
+
+	var input entities.PembelianDL
+
+	if err := c.BindJSON(&input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "bad request for binding input", err)
+		return
+	}
+
+	if err := ph.ServicePembelianDL.UpdateStatusButtonBayar(id, input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed update button bayar", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success patch button bayar", input.ButtonBayar)
+}
+
+func (ph *pembelianHandler) NewUpdateConfirmPayment(c *gin.Context) {
+	id := c.Param("id")
+
+	var input entities.PembelianDL
+
+	if err := c.BindJSON(&input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "bad request for binding input", err)
+		return
+	}
+
+	if err := ph.ServicePembelianDL.UpdateStatusPembayaranAdmin(id, input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed update konfirmasi bayar", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success patch konfirmasi bayar", input.StatusPembayaran)
+}
+
 func (ph *pembelianHandler) HandlerStatus(c *gin.Context) {
 	var notifPayload map[string]interface{}
 	err := json.NewDecoder(c.Request.Body).Decode(&notifPayload)
@@ -168,7 +233,6 @@ func (ph *pembelianHandler) HandlerStatus(c *gin.Context) {
 	}
 	if err := ph.ServicePembelianDL.UpdateStatusPembayaran(orderId); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed update status pembelian", err)
-		fmt.Println(err.Error())
 		return
 	}
 	utils.SuccessResponse(c, http.StatusOK, "successfully update status pembelian", nil)
@@ -240,8 +304,13 @@ func (ph *pembelianHandler) GetStatus(c *gin.Context) {
 func (ph *pembelianHandler) GetDetailPembelian(c *gin.Context) {
 	id := c.Param("id")
 	allData, err := ph.ServicePembelianDL.GetDetailByID(id)
+	if err == gorm.ErrRecordNotFound {
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "data pembelian not found", err)
+		return
+	}
+
 	if err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when fetch all data", err)
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch data pembelian", err)
 		return
 	}
 

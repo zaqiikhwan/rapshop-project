@@ -50,11 +50,11 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 
 	query := "%" + date + "%"
 
-	if err := pdlr.db.Select("harga_jual").Where("created_at LIKE ? and (harga_jual != 0 or harga_jual <> NULL)", query).Find(&allPenjualanByDate).Error; err != nil {
+	if err := pdlr.db.Select("harga_jual, status").Where("created_at LIKE ? and (harga_jual != 0 or harga_jual <> NULL) and status = 1 order by harga_jual asc", query).Find(&allPenjualanByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
-	if err := pdlr.db.Select("harga_beli").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL)", query).Find(&allPembelianByDate).Error; err != nil {
+	if err := pdlr.db.Select("harga_beli").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL) and status_pengiriman = 1 order by harga_beli asc", query).Find(&allPembelianByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
