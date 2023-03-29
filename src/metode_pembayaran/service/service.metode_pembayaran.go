@@ -35,16 +35,6 @@ func (mpu *metodePembayaranUsecase) GetAllPembayaran() ([]entities.MetodePembaya
 	return allPembayaran, nil
 }
 
-func (mpu *metodePembayaranUsecase) GetDetailPembayaran(jenis string) (entities.MetodePembayaran, error) {
-	detailPembayaran, err := mpu.RepoMetodePembayaran.GetByJenis(jenis)
-
-	if err != nil {
-		return detailPembayaran, err
-	}
-
-	return detailPembayaran, nil
-}
-
 func (mpu *metodePembayaranUsecase) GetDetailPembayaranByIndex(index int) (entities.MetodePembayaran, error) {
 	detailPembayaran, err := mpu.RepoMetodePembayaran.GetByIndex(index)
 
@@ -55,14 +45,24 @@ func (mpu *metodePembayaranUsecase) GetDetailPembayaranByIndex(index int) (entit
 	return detailPembayaran, nil
 }
 
-func (mpu *metodePembayaranUsecase) PatchDetailPembayaran(jenis string, input *entities.InputMetodePembayaran) error {
+func (mpu *metodePembayaranUsecase) GetDetailPembayaranByID(id uint) (entities.MetodePembayaran, error) {
+	detailPembayaran, err := mpu.RepoMetodePembayaran.GetByID(id)
+
+	if err != nil {
+		return detailPembayaran, err
+	}
+
+	return detailPembayaran, nil
+}
+
+func (mpu *metodePembayaranUsecase) PatchDetailPembayaranByID(id uint, input *entities.InputMetodePembayaran) error {
 	patchPayment := entities.MetodePembayaran {
 		IndexPembayaran: input.IndexPembayaran,
 		JenisPembayaran: input.JenisPembayaran,
 		KredensialPembayaran: input.KredensialPembayaran,
 		Pemilik: input.Pemilik,
 	}
-	if err := mpu.RepoMetodePembayaran.UpdateKredensial(jenis, patchPayment); err != nil {
+	if err := mpu.RepoMetodePembayaran.UpdateKredensialByID(id, patchPayment); err != nil {
 		return err
 	}
 	return nil

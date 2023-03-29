@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"rapsshop-project/entities"
 	"rapsshop-project/utils"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -15,9 +16,9 @@ type metodePembayaranHandler struct {
 func NewMetodePembayaranHandler(r *gin.RouterGroup, mpu entities.MetodePembayaranUsecase, jwtMiddleware gin.HandlerFunc) {
 	handlerMetodeBayar := &metodePembayaranHandler{MetodePembayaranUsecase: mpu}
 	r.POST("/payment", jwtMiddleware, handlerMetodeBayar.CreateNewPayment)
-	r.GET("/payment/:method", handlerMetodeBayar.GetDetailPayment)
+	r.GET("/payment/:id", handlerMetodeBayar.GetDetailPaymentByID)
 	r.GET("/payments", handlerMetodeBayar.GetAllPayment)
-	r.PATCH("/payment/:method", jwtMiddleware, handlerMetodeBayar.PatchDetailPayment)
+	r.PATCH("/payment/:id", jwtMiddleware, handlerMetodeBayar.PatchDetailPaymentByID)
 }
 
 func (mph *metodePembayaranHandler) CreateNewPayment(c *gin.Context) {
@@ -46,10 +47,17 @@ func (mph *metodePembayaranHandler) GetAllPayment(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "success fetch payment method data", allMethod)
 }
 
-func (mph *metodePembayaranHandler) GetDetailPayment(c *gin.Context) {
-	method := c.Param("method")
+func (mph *metodePembayaranHandler) GetDetailPaymentByID(c *gin.Context) {
+	id := c.Param("id")
 
-	detail, err := mph.MetodePembayaranUsecase.GetDetailPembayaran(method)
+	idUint, err := strconv.ParseUint(id, 10, 64)
+
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "error convert string to uint", err)
+		return
+	}
+
+	detail, err := mph.MetodePembayaranUsecase.GetDetailPembayaranByID(uint(idUint))
 
 	if err == gorm.ErrRecordNotFound {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "payment method not found", err)
@@ -59,8 +67,16 @@ func (mph *metodePembayaranHandler) GetDetailPayment(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "payment method found", detail)
 }
 
-func (mph *metodePembayaranHandler) PatchDetailPayment(c *gin.Context) {
-	method := c.Param("method")
+func (mph *metodePembayaranHandler) PatchDetailPaymentByID(c *gin.Context) {
+	id := c.Param("id")
+
+	idUint, err := strconv.ParseUint(id, 10, 64)
+
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "error convert string to uint", err)
+		return
+	}
+
 	var pacthMethod entities.InputMetodePembayaran
 
 	if err := c.BindJSON(&pacthMethod); err != nil {
@@ -68,7 +84,7 @@ func (mph *metodePembayaranHandler) PatchDetailPayment(c *gin.Context) {
 		return
 	}
 
-	if err := mph.MetodePembayaranUsecase.PatchDetailPembayaran(method, &pacthMethod); err != nil {
+	if err := mph.MetodePembayaranUsecase.PatchDetailPembayaranByID(uint(idUint), &pacthMethod); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when patch detail payment method", err)
 		return
 	}

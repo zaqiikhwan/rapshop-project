@@ -19,16 +19,16 @@ type InputMetodePembayaran struct {
 
 type MetodePembayaranRepository interface {
 	Create(newMetode MetodePembayaran) error 
-	GetByJenis(jenis string) (MetodePembayaran, error)
 	GetByIndex(index int) (MetodePembayaran, error)
+	GetByID(id uint) (MetodePembayaran, error)
 	GetAll() ([]MetodePembayaran, error)
-	UpdateKredensial(jenis string, patchKredensial MetodePembayaran) error
+	UpdateKredensialByID(id uint, patchKredensial MetodePembayaran) error
 }
 
 type MetodePembayaranUsecase interface {
 	CreateNewPembayaran(input *InputMetodePembayaran) error
 	GetAllPembayaran() ([]MetodePembayaran, error) 
-	GetDetailPembayaran(jenis string) (MetodePembayaran, error)
 	GetDetailPembayaranByIndex(index int) (MetodePembayaran, error)
-	PatchDetailPembayaran(jenis string, input *InputMetodePembayaran) error
+	GetDetailPembayaranByID(id uint) (MetodePembayaran, error)
+	PatchDetailPembayaranByID(id uint, input *InputMetodePembayaran) error
 }

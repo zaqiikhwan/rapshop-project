@@ -39,17 +39,16 @@ func (rmp *repoMetodePembayaran) GetByIndex(index int) (entities.MetodePembayara
 	return detailMethod, nil
 }
 
-
-func (rmp *repoMetodePembayaran) GetByJenis(jenis string) (entities.MetodePembayaran, error) {
+func (rmp *repoMetodePembayaran) GetByID(id uint) (entities.MetodePembayaran, error) {
 	var detailMethod entities.MetodePembayaran
-	if err := rmp.db.Where("jenis_pembayaran = ?", jenis).Take(&detailMethod).Error; err != nil {
+	if err := rmp.db.Where("id = ?", id).Take(&detailMethod).Error; err != nil {
 		return detailMethod, err
 	}
 	return detailMethod, nil
 }
 
-func (rmp *repoMetodePembayaran) UpdateKredensial(jenis string, patchKredensial entities.MetodePembayaran) error {
-	if err := rmp.db.Where("jenis_pembayaran = ?", jenis).Updates(patchKredensial).Error; err != nil {
+func (rmp *repoMetodePembayaran) UpdateKredensialByID(id uint, patchKredensial entities.MetodePembayaran) error {
+	if err := rmp.db.Where("id = ?", id).Updates(patchKredensial).Error; err != nil {
 		return err
 	}
 	return nil
