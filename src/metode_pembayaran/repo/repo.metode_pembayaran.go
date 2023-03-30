@@ -53,3 +53,11 @@ func (rmp *repoMetodePembayaran) UpdateKredensialByID(id uint, patchKredensial e
 	}
 	return nil
 }
+
+func (rmp *repoMetodePembayaran) DeleteByID(id uint) (error) {
+	var eachMethod entities.MetodePembayaran
+	if err := rmp.db.Delete(&eachMethod, id).Error; err != nil {
+		return err
+	}
+	return nil
+}

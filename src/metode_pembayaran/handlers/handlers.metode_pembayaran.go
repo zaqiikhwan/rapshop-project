@@ -19,6 +19,7 @@ func NewMetodePembayaranHandler(r *gin.RouterGroup, mpu entities.MetodePembayara
 	r.GET("/payment/:id", handlerMetodeBayar.GetDetailPaymentByID)
 	r.GET("/payments", handlerMetodeBayar.GetAllPayment)
 	r.PATCH("/payment/:id", jwtMiddleware, handlerMetodeBayar.PatchDetailPaymentByID)
+	r.DELETE("/payment/:id", jwtMiddleware, handlerMetodeBayar.DeletePaymentByID)
 }
 
 func (mph *metodePembayaranHandler) CreateNewPayment(c *gin.Context) {
@@ -88,5 +89,29 @@ func (mph *metodePembayaranHandler) PatchDetailPaymentByID(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when patch detail payment method", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusOK, "success patch detail payment method", pacthMethod.JenisPembayaran)
+
+	detail, err := mph.MetodePembayaranUsecase.GetDetailPembayaranByID(uint(idUint))
+	if err == gorm.ErrRecordNotFound {
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "payment id not found", err)
+		return
+	}
+	utils.SuccessResponse(c, http.StatusOK, "success patch detail payment method", detail)
+}
+
+func (mph *metodePembayaranHandler) DeletePaymentByID(c *gin.Context) {
+	id := c.Param("id")
+
+	idUint, err := strconv.ParseUint(id, 10, 64)
+
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "error convert string to uint", err)
+		return
+	}
+
+	if err := mph.MetodePembayaranUsecase.DeletePembayaranByID(uint(idUint)); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when delete payment method", err)
+		return		
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success delete payment method", nil)
 }

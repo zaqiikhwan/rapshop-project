@@ -180,7 +180,7 @@ func (ph *pembelianHandler) NewHandlerPembelian(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "payment method not found", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", paymentMethod)
+	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", map[string]any{"id_transaksi":input.ID, "payment":paymentMethod})
 }
 
 func (ph *pembelianHandler) NewUpdateButton(c *gin.Context) {
