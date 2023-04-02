@@ -113,7 +113,7 @@ func(spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 		}
 	}
 	
-	if err := spdl.RepoPembelianDL.UpdateStatus(dataPembelian, id); err != nil {
+	if err := spdl.RepoPembelianDL.UpdateByID(dataPembelian, id); err != nil {
 		return err
 	} 
 	return nil
@@ -124,7 +124,7 @@ func(spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities.
 		EditorStatus: input.EditorStatus,
 		StatusPengiriman: input.StatusPengiriman,
 	}
-	if err := spdl.RepoPembelianDL.UpdateStatus(statusKirim, id); err != nil {
+	if err := spdl.RepoPembelianDL.UpdateByID(statusKirim, id); err != nil {
 		return err
 	}
 
@@ -149,7 +149,7 @@ func(spdl *servicePembelianDL) UpdateStatusButtonBayar(id string, input entities
 	statusBayar := entities.PembelianDL {
 		ButtonBayar: input.ButtonBayar,
 	}
-	if err := spdl.RepoPembelianDL.UpdateStatus(statusBayar, id); err != nil {
+	if err := spdl.RepoPembelianDL.UpdateByID(statusBayar, id); err != nil {
 		return err
 	}
 	return nil
@@ -159,7 +159,18 @@ func(spdl *servicePembelianDL) UpdateStatusPembayaranAdmin(id string, input enti
 	statusBayar := entities.PembelianDL {
 		StatusPembayaran: input.StatusPembayaran,
 	}
-	if err := spdl.RepoPembelianDL.UpdateStatus(statusBayar, id); err != nil {
+	if err := spdl.RepoPembelianDL.UpdateByID(statusBayar, id); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (spdl *servicePembelianDL) UpdateTambahBukti(id string, input entities.PembelianDL) error {
+	buktiBayar := entities.PembelianDL {
+		BuktiPembayaran: input.BuktiPembayaran,
+	}
+
+	if err := spdl.RepoPembelianDL.UpdateByID(buktiBayar, id); err != nil {
 		return err
 	}
 	return nil

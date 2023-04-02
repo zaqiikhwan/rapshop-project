@@ -14,19 +14,20 @@ type RekapTotalPembelian struct {
 type PembelianDLRepository interface {
 	Create(input entities.PembelianDL) error
 	GetAll(_startInt int , _endInt int) ([]entities.PembelianDL, int, error)
-	UpdateStatus(input entities.PembelianDL, id string) error
+	UpdateByID(input entities.PembelianDL, id string) error
 	GetByID(id string) (entities.PembelianDL, error)
 	GetTotalPembelian(date string) ([]RekapTotalPembelian, error)
 }
 
 type PembelianDLUsecase interface {
 	// CreateDataPembelian(world string, nama string, grow_id string, jenis_item bool, jumlah_dl int, wa string, metode_transfer int, gambar string, id string) error
+	GetTotal(date string) ([]RekapTotalPembelian, error)
+	GetDetailByID(id string)(entities.PembelianDL, error)
+	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
 	CreateDataPembelian(input entities.PembelianDL) error
 	CreateDataPembelianMidtrans(input entities.PembelianDL) error
-	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
 	UpdateStatusPembayaran(id string) error
-	GetDetailByID(id string)(entities.PembelianDL, error)
-	GetTotal(date string) ([]RekapTotalPembelian, error)
+	UpdateTambahBukti(id string, input entities.PembelianDL) error
 	UpdateStatusPengiriman(id string, input entities.PembelianDL) error 
 	UpdateStatusButtonBayar(id string, input entities.PembelianDL) error
 	UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error 

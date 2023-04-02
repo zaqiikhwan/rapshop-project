@@ -42,7 +42,7 @@ func (rp *repoPembelianDL) GetByID(id string) (entities.PembelianDL, error) {
 	return model, nil
 }
 
-func (rp *repoPembelianDL) UpdateStatus(input entities.PembelianDL, id string) error {
+func (rp *repoPembelianDL) UpdateByID(input entities.PembelianDL, id string) error {
 	var statusPayment entities.PembelianDL
 	if err := rp.db.Where("id = ?", id).Model(&statusPayment).Updates(input).Error; err != nil {
 		return err

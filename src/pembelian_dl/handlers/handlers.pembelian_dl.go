@@ -49,7 +49,7 @@ func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsec
 	r.PATCH("/pembelian/button/:id", pembelianHandler.NewUpdateButton)
 	r.PATCH("/pembelian/confirm/:id", jwtMiddleware, pembelianHandler.NewUpdateConfirmPayment)
 	r.Static("/public", "./public/payment")
-	r.POST("/upload", pembelianHandler.UploadFile)
+	r.PATCH("/upload/:id", pembelianHandler.UploadFile)
 }
 
 // catetan!!
@@ -165,6 +165,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 
 func (ph *pembelianHandler) UploadFile(c *gin.Context) {
 	file, err := c.FormFile("file")
+	id := c.Param("id")
 
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "get form err: " + err.Error(), err)
@@ -204,7 +205,16 @@ func (ph *pembelianHandler) UploadFile(c *gin.Context) {
 
 		linkImage = os.Getenv("HOST_URL") + middleLink + file.Filename
 	}
+	var input entities.PembelianDL
 
+	input.BuktiPembayaran = linkImage
+
+	if err := ph.ServicePembelianDL.UpdateTambahBukti(id, input); err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed add bukti pembayaran", err)
+		return
+	}
+
+	
 	utils.SuccessResponse(c, http.StatusOK, "success upload file", linkImage)
 }
 
