@@ -20,8 +20,11 @@ func NewServicePembelianDL(repoBeliDL model.PembelianDLRepository, ca *lib.CoreA
 		midtransCoreClient: ca,
 	}
 }
+func (spdl *servicePembelianDL) CreateDataPembelianMidtrans(input entities.PembelianDL) error {
+	return nil
+}
 
-func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) error {
+func (spdl *servicePembelianDL) CreateDataPembelian(world string, nama string, grow_id string, jenis_item bool, jumlah_dl int, wa string, metode_transfer int, gambar string, id string) error {
 	location := time.FixedZone("UTC+7", 7*60*60)
 	GMT_7 := time.Now().In(location)
 
@@ -33,25 +36,26 @@ func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) 
 
 	var jumlahTransaksi int
 
-	if input.JumlahDL > 0 && input.JumlahDL < 100 {
-		jumlahTransaksi = input.JumlahDL * hargaBeli.HargaBeliDL
-	} else if input.JumlahDL % 100 == 0 && input.JumlahDL > 0 {
-		jumlahTransaksi = (input.JumlahDL / 100) * hargaBeli.HargaBeliBGL
-	} else if input.JumlahDL > 100 {
-		jumlahTransaksi = (input.JumlahDL / 100) * hargaBeli.HargaBeliBGL + input.JumlahDL % 100 * hargaBeli.HargaBeliDL
+	if jumlah_dl > 0 && jumlah_dl < 100 {
+		jumlahTransaksi = jumlah_dl * hargaBeli.HargaBeliDL
+	} else if jumlah_dl % 100 == 0 && jumlah_dl > 0 {
+		jumlahTransaksi = (jumlah_dl / 100) * hargaBeli.HargaBeliBGL
+	} else if jumlah_dl > 100 {
+		jumlahTransaksi = (jumlah_dl / 100) * hargaBeli.HargaBeliBGL + jumlah_dl % 100 * hargaBeli.HargaBeliDL
 	}
 
 	newPembelian := entities.PembelianDL{
-		ID: input.ID,
-		World: input.World,
-		Nama: input.Nama,
-		GrowID: input.GrowID,
-		JenisItem: input.JenisItem,
-		JumlahDL: input.JumlahDL,
-		WA: input.WA,
+		ID: id,
+		World: world,
+		Nama: nama,
+		GrowID: grow_id,
+		JenisItem: jenis_item,
+		JumlahDL: jumlah_dl,
+		WA: wa,
 		HargaBeli: hargaBeli.HargaBeliDL,
-		MetodeTransfer: input.MetodeTransfer,
+		MetodeTransfer: metode_transfer,
 		JumlahTransaksi: int64(jumlahTransaksi),
+		BuktiPembayaran: gambar,
 		CreatedAt: GMT_7,
 	}
 

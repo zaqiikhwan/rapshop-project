@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"rapsshop-project/database/mysql"
@@ -14,6 +15,7 @@ import (
 	"rapsshop-project/utils"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -46,6 +48,7 @@ func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsec
 	r.PATCH("/pembelian/:id", jwtMiddleware,pembelianHandler.UpdateStatusPengiriman)
 	r.PATCH("/pembelian/button/:id", pembelianHandler.NewUpdateButton)
 	r.PATCH("/pembelian/confirm/:id", jwtMiddleware, pembelianHandler.NewUpdateConfirmPayment)
+	r.Static("/public", "./public/payment")
 }
 
 // catetan!!
@@ -151,7 +154,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 
 	input.JumlahTransaksi = totalTransaksi
 	input.HargaBeli = harga.HargaBeliDL
-	if err := ph.ServicePembelianDL.CreateDataPembelian(input); err != nil {
+	if err := ph.ServicePembelianDL.CreateDataPembelianMidtrans(input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed create data penmbelian to database", err)
 		return
 	}
@@ -159,22 +162,118 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", responseBody)
 }
 
+// func (ph *pembelianHandler) UploadFile(c *gin.Context) {
+// 	file, err := c.FormFile("file")
+
+// 	if err != nil {
+// 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "get form err: " + err.Error(), err)
+// 		return
+// 	}
+
+// 	var linkImage string
+
+// 	if file != nil {
+// 		splitFileName := strings.Split(file.Filename, ".")
+
+// 		rand.Seed(time.Now().Unix())
+// 		str := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
+
+// 		shuff := []rune(str)
+
+// 		rand.Shuffle(len(shuff), func(i, j int) {
+// 			shuff[i], shuff[j] = shuff[j], shuff[i]
+// 		})
+// 		file.Filename = (string(shuff) + "." + splitFileName[1])
+
+// 		if err := c.SaveUploadedFile(file, "./public/payment/" + file.Filename); err != nil {
+// 			utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed upload file", err)
+// 			return
+// 		}
+
+// 		middleLink := "/api/v1/public/"
+
+// 		linkImage = os.Getenv("HOST_URL") + middleLink + file.Filename
+// 	}
+
+// 	utils.SuccessResponse(c, http.StatusOK, "success upload file", linkImage)
+// }
+
 func (ph *pembelianHandler) NewHandlerPembelian(c *gin.Context) {
 	var input entities.PembelianDL
 
-	if err := c.BindJSON(&input); err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "bad request for binding input", err)
+	world := c.PostForm("world")
+	nama := c.PostForm("nama")
+	grow_id := c.PostForm("grow_id")
+	jenis_item := c.PostForm("jenis_item")
+	jumlah_dl := c.PostForm("jumlah_dl")
+	wa := c.PostForm("wa")
+	metode_transfer := c.PostForm("metode_transfer")
+	gambar, err := c.FormFile("gambar")
+
+	// png, jpg, jpeg,heif,heic
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "get form err: " + err.Error(), err)
 		return
 	}
 
+	splitFileName := strings.Split(gambar.Filename, ".")
+
+	if splitFileName[1] != "png" && splitFileName[1] != "jpg" && splitFileName[1] != "jpeg" && splitFileName[1] != "heic" && splitFileName[1] != "heif" {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "format picture not allowed", err)
+		return
+	}
+
+	var linkImage string
+
+	if gambar != nil {
+		splitFileName := strings.Split(gambar.Filename, ".")
+
+		rand.Seed(time.Now().Unix())
+		str := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789"
+
+		shuff := []rune(str)
+
+		rand.Shuffle(len(shuff), func(i, j int) {
+			shuff[i], shuff[j] = shuff[j], shuff[i]
+		})
+		gambar.Filename = (string(shuff) + "." + splitFileName[1])
+
+		if err := c.SaveUploadedFile(gambar, "./public/payment/" + gambar.Filename); err != nil {
+			utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed upload file", err)
+			return
+		}
+
+		middleLink := "/api/v1/public/"
+
+		linkImage = os.Getenv("HOST_URL") + middleLink + gambar.Filename
+	}
+
+	jenisItemBoolean, err := strconv.ParseBool(jenis_item)
+
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed convert jenis_item to boolean", err)
+		return
+	}
+
+	jumlahDLInt, err := strconv.Atoi(jumlah_dl)
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed convert jumlah_dl to int", err)
+		return
+	}
+
+	metodePembayaranInt, err := strconv.Atoi(metode_transfer)
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed convert jumlah_dl to int", err)
+		return
+	}
 	input.ID = uuid.NewString()
 
-	if err := ph.ServicePembelianDL.CreateDataPembelian(input); err != nil {
+	if err := ph.ServicePembelianDL.CreateDataPembelian(world, nama, grow_id, jenisItemBoolean, jumlahDLInt, wa, metodePembayaranInt, linkImage, input.ID); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed create new data pembelian", err)
 		return
 	}
 
-	paymentMethod, err := ph.PaymentUsecase.GetDetailPembayaranByIndex(input.MetodeTransfer)
+	paymentMethod, err := ph.PaymentUsecase.GetDetailPembayaranByIndex(metodePembayaranInt)
 
 	if err == gorm.ErrRecordNotFound {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "payment method not found", err)

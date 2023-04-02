@@ -20,7 +20,8 @@ type PembelianDLRepository interface {
 }
 
 type PembelianDLUsecase interface {
-	CreateDataPembelian(input entities.PembelianDL) error
+	CreateDataPembelian(world string, nama string, grow_id string, jenis_item bool, jumlah_dl int, wa string, metode_transfer int, gambar string, id string) error
+	CreateDataPembelianMidtrans(input entities.PembelianDL) error
 	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
 	UpdateStatusPembayaran(id string) error
 	GetDetailByID(id string)(entities.PembelianDL, error)
