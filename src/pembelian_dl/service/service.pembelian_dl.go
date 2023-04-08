@@ -147,6 +147,7 @@ func(spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities.
 
 func(spdl *servicePembelianDL) UpdateStatusButtonBayar(id string, input entities.PembelianDL) error {
 	statusBayar := entities.PembelianDL {
+		EditorStatus: input.EditorStatus,
 		ButtonBayar: input.ButtonBayar,
 	}
 	if err := spdl.RepoPembelianDL.UpdateByID(statusBayar, id); err != nil {
@@ -157,6 +158,7 @@ func(spdl *servicePembelianDL) UpdateStatusButtonBayar(id string, input entities
 
 func(spdl *servicePembelianDL) UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error {
 	statusBayar := entities.PembelianDL {
+		EditorStatus: input.EditorStatus,
 		StatusPembayaran: input.StatusPembayaran,
 	}
 	if err := spdl.RepoPembelianDL.UpdateByID(statusBayar, id); err != nil {
