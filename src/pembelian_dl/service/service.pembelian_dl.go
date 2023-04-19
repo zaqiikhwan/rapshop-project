@@ -20,11 +20,29 @@ func NewServicePembelianDL(repoBeliDL model.PembelianDLRepository, ca *lib.CoreA
 		midtransCoreClient: ca,
 	}
 }
-func (spdl *servicePembelianDL) CreateDataPembelianMidtrans(input entities.PembelianDL) error {
+func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) error {
+	location := time.FixedZone("UTC+7", 7*60*60)
+	GMT_7 := time.Now().In(location)
+	newPembelian := entities.PembelianDL{
+		ID: input.ID,
+		World: input.World,
+		Nama: input.Nama,
+		GrowID: input.GrowID,
+		JenisItem: input.JenisItem,
+		JumlahDL: input.JumlahDL,
+		WA: input.WA,
+		MetodeTransfer: input.MetodeTransfer,
+		JumlahTransaksi: input.JumlahTransaksi,
+		CreatedAt: GMT_7,
+	}
+
+	if err := spdl.RepoPembelianDL.Create(newPembelian); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) error {
+func (spdl *servicePembelianDL) CreateDataPembelianManual(input entities.PembelianDL) error {
 	location := time.FixedZone("UTC+7", 7*60*60)
 	GMT_7 := time.Now().In(location)
 

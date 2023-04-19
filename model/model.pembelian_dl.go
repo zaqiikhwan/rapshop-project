@@ -25,7 +25,6 @@ type PembelianDLUsecase interface {
 	GetDetailByID(id string)(entities.PembelianDL, error)
 	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
 	CreateDataPembelian(input entities.PembelianDL) error
-	CreateDataPembelianMidtrans(input entities.PembelianDL) error
 	UpdateStatusPembayaran(id string) error
 	UpdateTambahBukti(id string, input entities.PembelianDL) error
 	UpdateStatusPengiriman(id string, input entities.PembelianDL) error 
