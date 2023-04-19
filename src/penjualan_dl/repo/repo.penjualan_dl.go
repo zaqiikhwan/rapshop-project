@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 type penjualanDLRepository struct {
 	db *gorm.DB
 }
