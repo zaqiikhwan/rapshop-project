@@ -57,7 +57,7 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 		return rekapJual, rekapBeli, err
 	}
 
-	if err := pdlr.db.Select("harga_beli, status_pembayaran").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL) and status_pembayaran = 'success' order by harga_beli asc", query).Find(&allPembelianByDate).Error; err != nil {
+	if err := pdlr.db.Select("harga_beli, status_pembayaran").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL) and status_pembayaran = 'success' or status_pembayaran = 'dibayar' order by harga_beli asc", query).Find(&allPembelianByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
@@ -92,11 +92,11 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 	}
 
 	for i := 0; i < len(arrayHargaBeli); i++ {
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahTransaksi).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahTransaksi).Error; err != nil {
 			rekapBeliTunggal.JumlahTransaksi = 0
 		}
 	
-		if err := pdlr.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahDL).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahDL).Error; err != nil {
 			rekapBeliTunggal.JumlahDL = 0
 		}
 
@@ -177,7 +177,7 @@ func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, 
 			eachTransaksi.TransaksiJual = 0
 		}
 
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and status_pembayaran = 'success'", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
 			eachTransaksi.TransaksiBeli = 0
 			eachTransaksi.TransaksiJual = 0
 		}

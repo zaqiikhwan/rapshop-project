@@ -27,10 +27,10 @@ func(rp *repoPembelianDL) Create(input entities.PembelianDL) error {
 func(rp *repoPembelianDL) GetAll(_startInt int, _endInt int) ([]entities.PembelianDL, int, error) {
 	var allPembelian []entities.PembelianDL
 	var lenData []entities.PembelianDL
-	if err := rp.db.Order("created_at desc").Where("status_pembayaran = ?", "success").Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPembelian).Error; err != nil {
+	if err := rp.db.Order("created_at desc").Where("status_pembayaran = ? or status_pembayaran = ?", "success", "dibayar").Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPembelian).Error; err != nil {
 		return allPembelian, 0, err
 	}
-	if err := rp.db.Select("id").Where("status_pembayaran = ?", "success").Find(&lenData).Error; err != nil {
+	if err := rp.db.Select("id").Where("status_pembayaran = ? or status_pembayaran = ?", "success", "dibayar").Find(&lenData).Error; err != nil {
 		return allPembelian, 0, err
 	}
 	return allPembelian, len(lenData), nil
@@ -80,7 +80,7 @@ func (rp *repoPembelianDL) GetTotalPembelian(date string) ([]model.RekapTotalPem
 
 		queryDate := "%" + arrayTanggalStr[i] + "%"
 	
-		if err := rp.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and status_pembayaran = ?", queryDate, "success").Scan(&totalPembelianTunggal.JumlahDL).Error; err != nil {
+		if err := rp.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and status_pembayaran = ? or status_pembayaran = ?", queryDate, "success", "dibayar").Scan(&totalPembelianTunggal.JumlahDL).Error; err != nil {
 			totalPembelianTunggal.JumlahDL = 0
 		}
 
