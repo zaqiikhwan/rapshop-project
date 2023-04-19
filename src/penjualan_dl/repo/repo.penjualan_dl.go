@@ -1,8 +1,11 @@
 package repo
 
 import (
+	"fmt"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
+	"strconv"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -54,7 +57,7 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 		return rekapJual, rekapBeli, err
 	}
 
-	if err := pdlr.db.Select("harga_beli, status_pengiriman").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL) and status_pengiriman = 1 order by harga_beli asc", query).Find(&allPembelianByDate).Error; err != nil {
+	if err := pdlr.db.Select("harga_beli, status_pembayaran").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL) and status_pembayaran = 'success' or status_pembayaran = 'dibayar' order by harga_beli asc", query).Find(&allPembelianByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
@@ -89,11 +92,11 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 	}
 
 	for i := 0; i < len(arrayHargaBeli); i++ {
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pengiriman = 1", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahTransaksi).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahTransaksi).Error; err != nil {
 			rekapBeliTunggal.JumlahTransaksi = 0
 		}
 	
-		if err := pdlr.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pengiriman = 1", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahDL).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahDL).Error; err != nil {
 			rekapBeliTunggal.JumlahDL = 0
 		}
 
@@ -105,25 +108,26 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 }
 
 func (pdlr *penjualanDLRepository) GetTotalPenjualan(date string) ([]model.RekapTotalPenjualan, error) {
-	var allPenjualanByDate []entities.PenjualanDL
-
 	var totalPenjualanTunggal model.RekapTotalPenjualan
 	var totalPenjualan []model.RekapTotalPenjualan
 
-	query := "%" + date + "%"
-
-	if err := pdlr.db.Select("created_at").Where("created_at LIKE ? order by created_at asc", query).Find(&allPenjualanByDate).Error; err != nil {
-		return totalPenjualan, err
-	}
-
+	arrayDate := strings.Split(date, "-")
+	arrayYearInt, _ := strconv.Atoi(arrayDate[0])
+	arrayMonthInt, _ := strconv.Atoi(arrayDate[1])
+	
 	var arrayTanggalStr []string
-
-	for _, v := range allPenjualanByDate {
-		if len(arrayTanggalStr) == 0 {
-			arrayTanggalStr = append(arrayTanggalStr, v.CreatedAt.String()[0:10])
-		} else if len(arrayTanggalStr) > 0 && arrayTanggalStr[len(arrayTanggalStr) - 1] != v.CreatedAt.String()[0:10] {
-			arrayTanggalStr = append(arrayTanggalStr, v.CreatedAt.String()[0:10])
-		}
+	if arrayYearInt % 4 == 0 && arrayMonthInt == 2{
+		jumlahHari := 29;
+		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
+	} else if arrayMonthInt == 2 {
+		jumlahHari := 28;
+		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
+	} else if ((arrayMonthInt % 2 != 0 && (arrayMonthInt != 9 && arrayMonthInt != 11))|| arrayMonthInt == 8 || arrayMonthInt == 10 || arrayMonthInt == 12){
+		jumlahHari := 31;
+		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
+	} else {
+		jumlahHari := 30;
+		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
 	}
 
 	for i := 0; i < len(arrayTanggalStr); i++ {
@@ -142,58 +146,43 @@ func (pdlr *penjualanDLRepository) GetTotalPenjualan(date string) ([]model.Rekap
 }
 
 func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, error){
-	var allPenjualanByDate []entities.PenjualanDL
-	var allPembelianByDate []entities.PembelianDL
-
 	var eachProfit model.RekapProfit
 	var eachTransaksi model.Total
 	var allProfit []model.RekapProfit
 
-	query := "%" + date + "%"
+	arrayDate := strings.Split(date, "-")
+	arrayYearInt, _ := strconv.Atoi(arrayDate[0])
+	arrayMonthInt, _ := strconv.Atoi(arrayDate[1])
 
-	if err := pdlr.db.Select("created_at").Where("created_at LIKE ? order by created_at asc", query).Find(&allPenjualanByDate).Error; err != nil {
-		return allProfit, err
+	var arrayTanggalStr []string
+	if arrayYearInt % 4 == 0 && arrayMonthInt == 2{
+		jumlahHari := 29;
+		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
+	} else if arrayMonthInt == 2 {
+		jumlahHari := 28;
+		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
+	} else if ((arrayMonthInt % 2 != 0 && (arrayMonthInt != 9 && arrayMonthInt != 11))|| arrayMonthInt == 8 || arrayMonthInt == 10 || arrayMonthInt == 12){
+		jumlahHari := 31;
+		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
+	} else {
+		jumlahHari := 30;
+		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
 	}
 
-	if err := pdlr.db.Select("created_at").Where("created_at LIKE ? order by created_at asc", query).Find(&allPembelianByDate).Error; err != nil {
-		return allProfit, err
-	}
+	for i := 0; i < len(arrayTanggalStr); i++ {
 
-	var arrayTanggalJual []string
-
-	for _, v := range allPenjualanByDate {
-		if len(arrayTanggalJual) == 0 {
-			arrayTanggalJual = append(arrayTanggalJual, v.CreatedAt.String()[0:10])
-		} else if len(arrayTanggalJual) > 0 && arrayTanggalJual[len(arrayTanggalJual) - 1] != v.CreatedAt.String()[0:10] {
-			arrayTanggalJual = append(arrayTanggalJual, v.CreatedAt.String()[0:10])
-		}
-	}
-
-	var arrayTanggalBeli []string
-
-	for _, v := range allPembelianByDate {
-		if len(arrayTanggalBeli) == 0 {
-			arrayTanggalBeli = append(arrayTanggalBeli, v.CreatedAt.String()[0:10])
-		} else if len(arrayTanggalBeli) > 0 && arrayTanggalBeli[len(arrayTanggalBeli) - 1] != v.CreatedAt.String()[0:10] {
-			arrayTanggalBeli = append(arrayTanggalBeli, v.CreatedAt.String()[0:10])
-		}
-	}
-
-
-	for i := 0; i < len(arrayTanggalBeli); i++ {
-
-		queryDate := "%" + arrayTanggalBeli[i] + "%"
+		queryDate := "%" + arrayTanggalStr[i] + "%"
 		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from penjualan_dls where created_at LIKE ? and status = 1", queryDate).Scan(&eachTransaksi.TransaksiJual).Error; err != nil {
 			eachTransaksi.TransaksiBeli = 0
 			eachTransaksi.TransaksiJual = 0
 		}
 
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and status_pembayaran = 'dibayar'", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
 			eachTransaksi.TransaksiBeli = 0
 			eachTransaksi.TransaksiJual = 0
 		}
 
-		eachProfit.Tanggal = arrayTanggalBeli[i][8:10]
+		eachProfit.Tanggal = arrayTanggalStr[i][8:10]
 		eachProfit.Profit = eachTransaksi.TransaksiBeli - eachTransaksi.TransaksiJual
 
 		allProfit = append(allProfit, eachProfit)
@@ -224,4 +213,26 @@ func (pdlr *penjualanDLRepository) DeleteByID(id uint) error {
 		return  err
 	}
 	return nil
+}
+
+func GeneratorTanggal(arrayDate []string, jumlahHari int) []string {
+	var arrayTanggalStrCheck []string
+
+	for i := 1; i <= jumlahHari; i++ {
+		arrDate := [1]int{i}; // {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} // ini buat tanggal
+		var arrDateStr [1]string
+		var tglStr string
+		arrDateStr = [1]string{strconv.Itoa(arrDate[0])}
+		if arrDate[0] < 10 {
+			combine := [3]string{"0",arrDateStr[0]}
+			tglStr = strings.Join(combine[0:2], "")
+		} else {
+			tglStr = arrDateStr[0]
+		}
+
+		fmt.Println(arrayDate[1])
+		combine := [3]string{arrayDate[0],arrayDate[1],tglStr}
+		arrayTanggalStrCheck = append(arrayTanggalStrCheck, strings.Join(combine[0:3], "-"))
+	}	
+	return arrayTanggalStrCheck
 }

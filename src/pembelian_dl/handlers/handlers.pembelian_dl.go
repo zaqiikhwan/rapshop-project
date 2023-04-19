@@ -155,7 +155,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 
 	input.JumlahTransaksi = totalTransaksi
 	input.HargaBeli = harga.HargaBeliDL
-	if err := ph.ServicePembelianDL.CreateDataPembelianMidtrans(input); err != nil {
+	if err := ph.ServicePembelianDL.CreateDataPembelian(input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed create data penmbelian to database", err)
 		return
 	}
