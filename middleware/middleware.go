@@ -6,6 +6,7 @@ import (
 	"os"
 	"rapsshop-project/utils"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -60,8 +61,11 @@ func ValidateToken(encodedToken string) (*jwt.Token, error) {
 }
 
 func GenerateToken(id string) (string, error) {
-	claim := jwt.MapClaims{}
-	claim["id"] = id
+	claim := jwt.MapClaims{
+		"id":  id,
+		"iat": time.Now().Unix(),
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 	signedToken, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))

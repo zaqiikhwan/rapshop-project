@@ -1,0 +1,22 @@
+{
+  "name": "rapsshop",
+  "description": "RapsShop Go backend agent: layered Gin/GORM/MySQL service for Growtopia DL/BGL trading. Loads project context and skills.",
+  "tools": ["read", "write", "shell", "grep", "glob", "code"],
+  "allowedTools": ["read", "grep", "glob", "code"],
+  "toolsSettings": {
+    "shell": {
+      "allowedCommands": ["go build .*", "go vet .*", "go test .*", "go run .*", "git status", "git diff.*"],
+      "autoAllowReadonly": true
+    }
+  },
+  "resources": [
+    "file://CLAUDE.md",
+    "file://README.md",
+    "file://PRD.md",
+    "file://SUGGESTIONS.md",
+    "skill://.kiro/skills/**/SKILL.md"
+  ],
+  "hooks": {
+    "agentSpawn": [{ "command": "go version" }]
+  }
+}

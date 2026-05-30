@@ -32,9 +32,12 @@ func InitDatabase() *gorm.DB {
 	var pembelian_dl entities.PembelianDL
 	var metode_pembayaran entities.MetodePembayaran
 
-	err = db.AutoMigrate(admin, testimoni, sosmed, stock_dl, harga_dl, env_growtopia, penjualan_dl, pembelian_dl, metode_pembayaran)
-	if err != nil {
-		log.Fatalf("failed to migrate, %s\n", err)
+	// AutoMigrate runs unless AUTO_MIGRATE is explicitly "false" (use versioned migrations in prod).
+	if os.Getenv("AUTO_MIGRATE") != "false" {
+		err = db.AutoMigrate(admin, testimoni, sosmed, stock_dl, harga_dl, env_growtopia, penjualan_dl, pembelian_dl, metode_pembayaran)
+		if err != nil {
+			log.Fatalf("failed to migrate, %s\n", err)
+		}
 	}
 
 	return db
