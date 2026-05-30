@@ -6,6 +6,7 @@ import (
 	"os"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
+	"strings"
 
 	storage_go "github.com/supabase-community/storage-go"
 )
@@ -27,12 +28,13 @@ func (tu *testimoniUsecase) CreateTestimoni(image *multipart.FileHeader, testi s
 	}
 
 	imageIo, err := image.Open()
-
-	client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo)
-
 	if err != nil {
 		return err
 	}
+	defer imageIo.Close()
+
+	client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo)
+
 	newTesti := entities.Testimoni{
 		Gambar: os.Getenv("BASE_URL") + image.Filename,
 		Testimoni: testi,
@@ -80,16 +82,15 @@ func (tu *testimoniUsecase) UpdateTestimoniByID(id uint, image *multipart.FileHe
 	var updateTesti entities.Testimoni
 
 	if image != nil {
-		paths := make([]string, 1) 
-		paths = append(paths, detailTestimoni.Gambar)
-	
-		client.RemoveFile(os.Getenv("STORAGE_NAME"), paths)
+		oldKey := strings.TrimPrefix(detailTestimoni.Gambar, os.Getenv("BASE_URL"))
+		client.RemoveFile(os.Getenv("STORAGE_NAME"), []string{oldKey})
+
 		imageIo, err := image.Open()
-	
 		if err != nil {
 			return entities.Testimoni{}, err
 		}
-	
+		defer imageIo.Close()
+
 		client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo)
 
 		updateTesti = entities.Testimoni{

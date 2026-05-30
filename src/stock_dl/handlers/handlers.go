@@ -13,7 +13,7 @@ type stockDLHandler struct {
 	StockDLUsecase model.StockDLUsecase
 }
 
-func NewAdminHandler(r *gin.RouterGroup, sdlh model.StockDLUsecase, jwtMiddleware gin.HandlerFunc) {
+func NewStockDLHandler(r *gin.RouterGroup, sdlh model.StockDLUsecase, jwtMiddleware gin.HandlerFunc) {
 	stockDLHandler := &stockDLHandler{StockDLUsecase: sdlh}
 	r.POST("/stock", jwtMiddleware, stockDLHandler.CreateNewStock)
 	r.GET("/stocks", stockDLHandler.GetAllStockData)
@@ -25,7 +25,7 @@ func NewAdminHandler(r *gin.RouterGroup, sdlh model.StockDLUsecase, jwtMiddlewar
 func (sdlh *stockDLHandler) CreateNewStock(c *gin.Context) {
 	var input model.InputStockDL
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
@@ -62,7 +62,7 @@ func (sdlh *stockDLHandler) GetLatestStockData(c *gin.Context) {
 func(sdlh *stockDLHandler) UpdateStockData(c *gin.Context) {
 	var updateStock model.InputStockDL
 
-	if err := c.BindJSON(&updateStock); err != nil {
+	if err := c.ShouldBindJSON(&updateStock); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}

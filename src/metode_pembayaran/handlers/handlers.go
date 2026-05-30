@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"rapsshop-project/entities"
+	"rapsshop-project/model"
 	"rapsshop-project/utils"
 	"strconv"
 
@@ -11,21 +11,21 @@ import (
 )
 
 type metodePembayaranHandler struct {
-	MetodePembayaranUsecase entities.MetodePembayaranUsecase
+	MetodePembayaranUsecase model.MetodePembayaranUsecase
 }
-func NewMetodePembayaranHandler(r *gin.RouterGroup, mpu entities.MetodePembayaranUsecase, jwtMiddleware gin.HandlerFunc) {
+func NewMetodePembayaranHandler(r *gin.RouterGroup, mpu model.MetodePembayaranUsecase, jwtMiddleware gin.HandlerFunc) {
 	handlerMetodeBayar := &metodePembayaranHandler{MetodePembayaranUsecase: mpu}
 	r.POST("/payment", jwtMiddleware, handlerMetodeBayar.CreateNewPayment)
-	r.GET("/payment/:id", handlerMetodeBayar.GetDetailPaymentByID)
-	r.GET("/payments", handlerMetodeBayar.GetAllPayment)
+	r.GET("/payment/:id", jwtMiddleware, handlerMetodeBayar.GetDetailPaymentByID)
+	r.GET("/payments", jwtMiddleware, handlerMetodeBayar.GetAllPayment)
 	r.PATCH("/payment/:id", jwtMiddleware, handlerMetodeBayar.PatchDetailPaymentByID)
 	r.DELETE("/payment/:id", jwtMiddleware, handlerMetodeBayar.DeletePaymentByID)
 }
 
 func (mph *metodePembayaranHandler) CreateNewPayment(c *gin.Context) {
-	var input entities.InputMetodePembayaran
+	var input model.InputMetodePembayaran
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
@@ -78,14 +78,14 @@ func (mph *metodePembayaranHandler) PatchDetailPaymentByID(c *gin.Context) {
 		return
 	}
 
-	var pacthMethod entities.InputMetodePembayaran
+	var patchMethod model.InputMetodePembayaran
 
-	if err := c.BindJSON(&pacthMethod); err != nil {
+	if err := c.ShouldBindJSON(&patchMethod); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
 
-	if err := mph.MetodePembayaranUsecase.PatchDetailPembayaranByID(uint(idUint), &pacthMethod); err != nil {
+	if err := mph.MetodePembayaranUsecase.PatchDetailPembayaranByID(uint(idUint), &patchMethod); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when patch detail payment method", err)
 		return
 	}

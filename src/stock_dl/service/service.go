@@ -48,57 +48,23 @@ func (sdlu *stockDLUsecase) GetLatestDataStock() (entities.StockDL, error) {
 }
 
 func (sdlu *stockDLUsecase) UpdateTambahStock(input *model.InputStockDL) (entities.StockDL, error) {
-	stock, err := sdlu.StockDLRepository.GetLatest()
-
-	if err != nil {
-		return stock, err
-	}
-
-	updateStockDL := entities.StockDL {
-		Profit: input.Profit,
-		HargaJualDL: input.HargaJualDL,
-		HargaBeliDL: input.HargaBeliDL,
+	prices := entities.StockDL{
+		Profit:       input.Profit,
+		HargaJualDL:  input.HargaJualDL,
+		HargaBeliDL:  input.HargaBeliDL,
 		HargaBeliBGL: input.HargaBeliBGL,
-		StockDL: stock.StockDL + input.StockDL, // next aku perlu gimana caranya stock bisa service sesuai permintaan client
 	}
-
-	if err := sdlu.StockDLRepository.UpdateByID(updateStockDL, stock.ID); err != nil {
-		return stock, err
-	}
-
-	stockLatest, err := sdlu.StockDLRepository.GetLatest()
-
-	if err != nil {
-		return stock, err
-	}
-	return stockLatest, nil
-} 
+	return sdlu.StockDLRepository.AdjustLatest(input.StockDL, prices)
+}
 
 func (sdlu *stockDLUsecase) UpdateKurangiStock(input *model.InputStockDL) (entities.StockDL, error) {
-	stock, err := sdlu.StockDLRepository.GetLatest()
-
-	if err != nil {
-		return stock, err
-	}
-
-	updateStockDL := entities.StockDL {
-		Profit: input.Profit,
+	prices := entities.StockDL{
+		Profit:      input.Profit,
 		HargaJualDL: input.HargaJualDL,
 		HargaBeliDL: input.HargaBeliDL,
-		StockDL: stock.StockDL - input.StockDL, // next aku perlu gimana caranya stock bisa service sesuai permintaan client
 	}
-
-	if err := sdlu.StockDLRepository.UpdateByID(updateStockDL, stock.ID); err != nil {
-		return stock, err
-	}
-
-	stockLatest, err := sdlu.StockDLRepository.GetLatest()
-
-	if err != nil {
-		return stock, err
-	}
-	return stockLatest, nil
-} 
+	return sdlu.StockDLRepository.AdjustLatest(-input.StockDL, prices)
+}
 
 func (sdlu *stockDLUsecase) DeleteStock() error {
 	stock, err := sdlu.StockDLRepository.GetLatest()

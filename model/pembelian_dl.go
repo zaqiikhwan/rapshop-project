@@ -4,6 +4,7 @@ import (
 	"rapsshop-project/entities"
 
 	"github.com/midtrans/midtrans-go"
+	"gorm.io/gorm"
 )
 
 type RekapTotalPembelian struct {
@@ -17,6 +18,9 @@ type PembelianDLRepository interface {
 	UpdateByID(input entities.PembelianDL, id string) error
 	GetByID(id string) (entities.PembelianDL, error)
 	GetTotalPembelian(date string) ([]RekapTotalPembelian, error)
+	MarkPaid(id string) (bool, error)
+	MarkShipped(id string, editor string) (bool, error)
+	WithTx(tx *gorm.DB) PembelianDLRepository
 }
 
 type PembelianDLUsecase interface {
@@ -25,6 +29,8 @@ type PembelianDLUsecase interface {
 	GetDetailByID(id string)(entities.PembelianDL, error)
 	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
 	CreateDataPembelian(input entities.PembelianDL) error
+	ChargeAndCreate(input entities.PembelianDL) (map[string]any, error)
+	GetLiveStatus(id string) (map[string]any, error)
 	UpdateStatusPembayaran(id string) error
 	UpdateTambahBukti(id string, input entities.PembelianDL) error
 	UpdateStatusPengiriman(id string, input entities.PembelianDL) error 

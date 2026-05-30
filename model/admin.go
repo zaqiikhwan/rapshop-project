@@ -19,7 +19,7 @@ type AdminLogin struct {
 type AdminDto struct {
 	ID        string `json:"id"`
 	Username  string `json:"username"`
-	Nama      string `jsom:"nama"`
+	Nama      string `json:"nama"`
 }
 
 type AdminRepository interface {

@@ -3,6 +3,8 @@ package model
 import (
 	"mime/multipart"
 	"rapsshop-project/entities"
+
+	"gorm.io/gorm"
 )
 
 type InputPenjualanDL struct {
@@ -54,7 +56,9 @@ type PenjualanDLRepository interface {
 	GetProfit(date string) ([]RekapProfit, error)
 	GetTotalPenjualan(date string) ([]RekapTotalPenjualan, error)
 	UpdateByID(id uint, input entities.PenjualanDL) error
+	UpdateStatusIfCurrent(id uint, from int, to int, editor string) (bool, error)
 	DeleteByID(id uint) error
+	WithTx(tx *gorm.DB) PenjualanDLRepository
 }
 
 type PenjualanDLUsecase interface {

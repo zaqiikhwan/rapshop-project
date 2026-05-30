@@ -18,13 +18,13 @@ func NewHargaDLHandler(r *gin.RouterGroup, hdlh model.HargaDLUsecase, jwtMiddlew
 	r.POST("/price", jwtMiddleware, hargaDLHandler.CreateNewPrice)
 	r.GET("/price", hargaDLHandler.GetLatestPrice)
 	r.PATCH("/price", jwtMiddleware, hargaDLHandler.UpdateLatestPrice)
-	r.DELETE("/price", jwtMiddleware, hargaDLHandler.DeleteLatesPrice)
+	r.DELETE("/price", jwtMiddleware, hargaDLHandler.DeleteLatestPrice)
 }
 
 func (hdlh *hargaDLHandler) CreateNewPrice(c *gin.Context){
 	var input model.InputHargaDL
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
@@ -54,7 +54,7 @@ func (hdlh *hargaDLHandler) GetLatestPrice(c *gin.Context) {
 func (hdlh *hargaDLHandler) UpdateLatestPrice(c *gin.Context) {
 	var input model.InputHargaDL
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
@@ -74,7 +74,7 @@ func (hdlh *hargaDLHandler) UpdateLatestPrice(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "success update latest price", updatedPrice)
 }
 
-func (hdlh *hargaDLHandler) DeleteLatesPrice(c *gin.Context) {
+func (hdlh *hargaDLHandler) DeleteLatestPrice(c *gin.Context) {
 	if err := hdlh.HargaDLUsecase.DeleteLatestPrice(); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed delete latest price", err)
 		return

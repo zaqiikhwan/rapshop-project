@@ -14,7 +14,7 @@ type sosmedHandler struct {
 	SosmedUsecase model.SosmedUsecase
 }
 
-func NewAdminHandler(r *gin.RouterGroup, su model.SosmedUsecase, jwtMiddleware gin.HandlerFunc) {
+func NewSosmedHandler(r *gin.RouterGroup, su model.SosmedUsecase, jwtMiddleware gin.HandlerFunc) {
 	sosmedHandler := &sosmedHandler{SosmedUsecase: su}
 	r.POST("/platform", jwtMiddleware, sosmedHandler.CreateNewSosmed)
 	r.GET("/platforms", sosmedHandler.GetAllSosmed)
@@ -26,7 +26,7 @@ func NewAdminHandler(r *gin.RouterGroup, su model.SosmedUsecase, jwtMiddleware g
 func (sh *sosmedHandler) CreateNewSosmed(c *gin.Context) {
 	var input model.InputSosmed
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
@@ -81,7 +81,7 @@ func(sh *sosmedHandler) UpdateSosmedByID(c *gin.Context) {
 
 	var updateSosmed model.InputSosmed
 
-	if err := c.BindJSON(&updateSosmed); err != nil {
+	if err := c.ShouldBindJSON(&updateSosmed); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}

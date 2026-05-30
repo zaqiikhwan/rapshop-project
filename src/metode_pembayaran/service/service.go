@@ -1,16 +1,19 @@
 package service
 
-import "rapsshop-project/entities"
+import (
+	"rapsshop-project/entities"
+	"rapsshop-project/model"
+)
 
 type metodePembayaranUsecase struct {
-	RepoMetodePembayaran entities.MetodePembayaranRepository
+	RepoMetodePembayaran model.MetodePembayaranRepository
 }
 
-func NewMetodePembayaranUsecase(repoMetodePembayaran entities.MetodePembayaranRepository) entities.MetodePembayaranUsecase {
+func NewMetodePembayaranUsecase(repoMetodePembayaran model.MetodePembayaranRepository) model.MetodePembayaranUsecase {
 	return &metodePembayaranUsecase{RepoMetodePembayaran: repoMetodePembayaran}
 }
 
-func (mpu *metodePembayaranUsecase) CreateNewPembayaran(input *entities.InputMetodePembayaran) error {
+func (mpu *metodePembayaranUsecase) CreateNewPembayaran(input *model.InputMetodePembayaran) error {
 	newPembayaran := entities.MetodePembayaran{
 		IndexPembayaran: &input.IndexPembayaran,
 		JenisPembayaran: input.JenisPembayaran,
@@ -55,7 +58,7 @@ func (mpu *metodePembayaranUsecase) GetDetailPembayaranByID(id uint) (entities.M
 	return detailPembayaran, nil
 }
 
-func (mpu *metodePembayaranUsecase) PatchDetailPembayaranByID(id uint, input *entities.InputMetodePembayaran) error {
+func (mpu *metodePembayaranUsecase) PatchDetailPembayaranByID(id uint, input *model.InputMetodePembayaran) error {
 	patchPayment := entities.MetodePembayaran {
 		IndexPembayaran: &input.IndexPembayaran,
 		JenisPembayaran: input.JenisPembayaran,

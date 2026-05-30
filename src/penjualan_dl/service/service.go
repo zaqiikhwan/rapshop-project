@@ -9,18 +9,23 @@ import (
 	"time"
 
 	storage_go "github.com/supabase-community/storage-go"
+	"gorm.io/gorm"
 )
 
 type penjualanDLUsecase struct {
+	db *gorm.DB
 	PenjualanDLRepository model.PenjualanDLRepository
-	StockDLUsecase model.StockDLUsecase
+	StockRepo model.StockDLRepository
 }
 
-func NewTestimoniUsecase(repoJualDL model.PenjualanDLRepository, stockDLUsecase model.StockDLUsecase) model.PenjualanDLUsecase {
-	return &penjualanDLUsecase{PenjualanDLRepository: repoJualDL, StockDLUsecase: stockDLUsecase}
+func NewPenjualanDLUsecase(db *gorm.DB, repoJualDL model.PenjualanDLRepository, stockRepo model.StockDLRepository) model.PenjualanDLUsecase {
+	return &penjualanDLUsecase{db: db, PenjualanDLRepository: repoJualDL, StockRepo: stockRepo}
 }
 
 func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int, jumlahTransaksi int, wa string, transfer string, nomorTransfer string, nama string, hargaJualDL int) error {
+	if jumlahDL <= 0 {
+		return errors.New("jumlah_dl must be greater than 0")
+	}
 
 	client := storage_go.NewClient(os.Getenv("SUPABASE_URL"), os.Getenv("SERVICE_TOKEN"), nil)
 
@@ -29,12 +34,15 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 	}
 
 	imageIo, err := image.Open()
-
-	client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo)
-
 	if err != nil {
 		return err
 	}
+	defer imageIo.Close()
+
+	if resp := client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo); resp.Key == "" {
+		return errors.New("upload failed: " + resp.Message)
+	}
+
 	location := time.FixedZone("UTC+7", 7*60*60)
 	GMT_7 := time.Now().In(location)
 	newPenjualan := entities.PenjualanDL{
@@ -107,43 +115,39 @@ func (pdlu *penjualanDLUsecase) GetByID(id uint) (entities.PenjualanDL, error) {
 
 func (pdlu *penjualanDLUsecase) UpdateByID(id uint, input entities.PenjualanDL) (entities.PenjualanDL, error) {
 	detail, err := pdlu.PenjualanDLRepository.GetByID(id)
-
 	if err != nil {
 		return detail, err
 	}
 
-	updateStatus := entities.PenjualanDL{
-		EditorStatus: input.EditorStatus,
-		Status: input.Status,
-	}
-
-	err = pdlu.PenjualanDLRepository.UpdateByID(id, updateStatus)
-	if err != nil {
-		return updateStatus, err
-	}
-
-	updatedData, err := pdlu.PenjualanDLRepository.GetByID(id)
-
-	updateStock := model.InputStockDL {
-		StockDL: updatedData.JumlahDL,
-	}
-	if (*detail.Status == 0 && *updatedData.Status == 1) || (*detail.Status == -1 && *updatedData.Status == 1)  {
-		_, err := pdlu.StockDLUsecase.UpdateTambahStock(&updateStock)
-		if err != nil {
-			return updatedData, err
+	if input.Status == nil {
+		if err := pdlu.PenjualanDLRepository.UpdateByID(id, entities.PenjualanDL{EditorStatus: input.EditorStatus}); err != nil {
+			return detail, err
 		}
-	} else if (*detail.Status == 1 && *updatedData.Status == 0) || (*detail.Status == 1 && *updatedData.Status == -1) {
-		_, err := pdlu.StockDLUsecase.UpdateKurangiStock(&updateStock)
-		if err != nil {
-			return updatedData, err
-		}
-	}
-	
-	if err != nil {
-		return updatedData, err
+		return pdlu.PenjualanDLRepository.GetByID(id)
 	}
 
-	return updatedData, nil
+	from, to := *detail.Status, *input.Status
+
+	// Compare-and-set the status, then adjust stock only when this call actually
+	// performed the transition, so concurrent double-approve can't double-count stock.
+	err = pdlu.db.Transaction(func(tx *gorm.DB) error {
+		changed, err := pdlu.PenjualanDLRepository.WithTx(tx).UpdateStatusIfCurrent(id, from, to, input.EditorStatus)
+		if err != nil || !changed {
+			return err
+		}
+		switch {
+		case (from == 0 || from == -1) && to == 1:
+			_, err = pdlu.StockRepo.WithTx(tx).AdjustLatest(detail.JumlahDL, entities.StockDL{})
+		case from == 1 && (to == 0 || to == -1):
+			_, err = pdlu.StockRepo.WithTx(tx).AdjustLatest(-detail.JumlahDL, entities.StockDL{})
+		}
+		return err
+	})
+	if err != nil {
+		return detail, err
+	}
+
+	return pdlu.PenjualanDLRepository.GetByID(id)
 }
 
 func (pdlu *penjualanDLUsecase) DeleteByID(id uint) error {

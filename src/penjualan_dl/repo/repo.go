@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"fmt"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 	"strconv"
@@ -18,6 +17,19 @@ func NewPenjualanDLRepository(db *gorm.DB) model.PenjualanDLRepository {
 	return &penjualanDLRepository{db: db}
 }
 
+func (pdlr *penjualanDLRepository) WithTx(tx *gorm.DB) model.PenjualanDLRepository {
+	return &penjualanDLRepository{db: tx}
+}
+
+// UpdateStatusIfCurrent is an optimistic compare-and-set: it only updates when the row
+// still holds `from`, returning true when this call applied the transition.
+func (pdlr *penjualanDLRepository) UpdateStatusIfCurrent(id uint, from int, to int, editor string) (bool, error) {
+	res := pdlr.db.Model(&entities.PenjualanDL{}).
+		Where("id = ? AND status = ?", id, from).
+		Updates(entities.PenjualanDL{EditorStatus: editor, Status: &to})
+	return res.RowsAffected == 1, res.Error
+}
+
 func (pdlr *penjualanDLRepository) Create(input entities.PenjualanDL) error {
 	if err := pdlr.db.Create(&input).Error; err != nil {
 		return err
@@ -27,15 +39,21 @@ func (pdlr *penjualanDLRepository) Create(input entities.PenjualanDL) error {
 
 func (pdlr *penjualanDLRepository) GetAll(_startInt int, _endInt int) ([]entities.PenjualanDL, int,error) {
 	var allPenjualan []entities.PenjualanDL
-	var lenData []entities.PenjualanDL
-	if err := pdlr.db.Select("id").Find(&lenData).Error; err != nil {
+	var total int64
+	if _startInt < 1 {
+		_startInt = 1
+	}
+	if _endInt < _startInt {
+		_endInt = _startInt
+	}
+	if err := pdlr.db.Model(&entities.PenjualanDL{}).Count(&total).Error; err != nil {
 		return allPenjualan, 0, err
 	}
 
 	if err := pdlr.db.Order("created_at desc").Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPenjualan).Error; err != nil {
 		return allPenjualan, 0, err
 	}
-	return allPenjualan, len(lenData), nil
+	return allPenjualan, int(total), nil
 }
 
 func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaksiPenjualan, []model.RekapTransaksiPembelian, error) {
@@ -53,11 +71,11 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 
 	query := "%" + date + "%"
 
-	if err := pdlr.db.Select("harga_jual, status").Where("created_at LIKE ? and (harga_jual != 0 or harga_jual <> NULL) and status = 1 order by harga_jual asc", query).Find(&allPenjualanByDate).Error; err != nil {
+	if err := pdlr.db.Select("harga_jual, status").Where("created_at LIKE ? and (harga_jual != 0 or harga_jual <> NULL) and status = 1", query).Order("harga_jual asc").Find(&allPenjualanByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
-	if err := pdlr.db.Select("harga_beli, status_pembayaran").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL) and status_pembayaran = 'success' or status_pembayaran = 'dibayar' order by harga_beli asc", query).Find(&allPembelianByDate).Error; err != nil {
+	if err := pdlr.db.Select("harga_beli, status_pembayaran").Where("created_at LIKE ? and (harga_beli != 0 or harga_beli <> NULL) and (status_pembayaran = 'success' or status_pembayaran = 'dibayar')", query).Order("harga_beli asc").Find(&allPembelianByDate).Error; err != nil {
 		return rekapJual, rekapBeli, err
 	}
 
@@ -92,11 +110,11 @@ func (pdlr *penjualanDLRepository) GetByDate(date string) ([]model.RekapTransaks
 	}
 
 	for i := 0; i < len(arrayHargaBeli); i++ {
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahTransaksi).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and harga_beli = ? and (status_pembayaran = 'success' or status_pembayaran = 'dibayar')", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahTransaksi).Error; err != nil {
 			rekapBeliTunggal.JumlahTransaksi = 0
 		}
 	
-		if err := pdlr.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and harga_beli = ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahDL).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and harga_beli = ? and (status_pembayaran = 'success' or status_pembayaran = 'dibayar')", query, arrayHargaBeli[i]).Scan(&rekapBeliTunggal.JumlahDL).Error; err != nil {
 			rekapBeliTunggal.JumlahDL = 0
 		}
 
@@ -177,12 +195,14 @@ func (pdlr *penjualanDLRepository) GetProfit(date string) ([]model.RekapProfit, 
 			eachTransaksi.TransaksiJual = 0
 		}
 
-		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and status_pembayaran = 'success' or status_pembayaran = 'dibayar'", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
+		if err := pdlr.db.Raw("select sum(jumlah_transaksi) from pembelian_dls where created_at LIKE ? and (status_pembayaran = 'success' or status_pembayaran = 'dibayar')", queryDate).Scan(&eachTransaksi.TransaksiBeli).Error; err != nil {
 			eachTransaksi.TransaksiBeli = 0
 			eachTransaksi.TransaksiJual = 0
 		}
 
 		eachProfit.Tanggal = arrayTanggalStr[i][8:10]
+		// Profit = revenue (pembelian: customers buying from the shop)
+		//        - cost    (penjualan: the shop buying DL from customers).
 		eachProfit.Profit = eachTransaksi.TransaksiBeli - eachTransaksi.TransaksiJual
 
 		allProfit = append(allProfit, eachProfit)
@@ -230,7 +250,6 @@ func GeneratorTanggal(arrayDate []string, jumlahHari int) []string {
 			tglStr = arrDateStr[0]
 		}
 
-		fmt.Println(arrayDate[1])
 		combine := [3]string{arrayDate[0],arrayDate[1],tglStr}
 		arrayTanggalStrCheck = append(arrayTanggalStrCheck, strings.Join(combine[0:3], "-"))
 	}	

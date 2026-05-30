@@ -16,14 +16,14 @@ type envGrowtopiaHandler struct {
 func NewEnvGrowtopiaHandler(r *gin.RouterGroup, egh model.GrowtopiaEnvUsecase, jwtMiddleware gin.HandlerFunc) {
 	envGrowtopiaHandler := &envGrowtopiaHandler{EnvGrowtopiaUsecase: egh}
 	r.POST("/env", jwtMiddleware, envGrowtopiaHandler.CreateNewEnv)
-	r.GET("/env", envGrowtopiaHandler.GetLatestEnv)
+	r.GET("/env", jwtMiddleware, envGrowtopiaHandler.GetLatestEnv)
 	r.PATCH("/env", jwtMiddleware, envGrowtopiaHandler.UpdateLatestEnv)
 }
 
 func (egh *envGrowtopiaHandler) CreateNewEnv(c *gin.Context) {
 	var input model.InputGrowtopiaEnv
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
@@ -51,7 +51,7 @@ func (egh *envGrowtopiaHandler) GetLatestEnv(c *gin.Context) {
 func (egh *envGrowtopiaHandler) UpdateLatestEnv(c *gin.Context) {
 	var input model.InputGrowtopiaEnv
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}

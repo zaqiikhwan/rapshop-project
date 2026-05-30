@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,80 +12,38 @@ type response struct {
 }
 
 func SuccessResponse(c *gin.Context, httpCode int, msg string, data interface{}) {
-	switch httpCode / 100 {
-	case 2:
-		c.JSON(httpCode, response{
-			StatusCode: httpCode,
-			Status:  "success, request OK!",
-			Message: msg,
-			Data:    data,
-		})
-	default:
-		c.JSON(http.StatusInternalServerError, response{
-			StatusCode: httpCode,
-			Status:  "error, internal server error",
-			Message: msg,
-			Data:    nil,
-		})
-	}
+	c.JSON(httpCode, response{
+		StatusCode: httpCode,
+		Status:     "success, request OK!",
+		Message:    msg,
+		Data:       data,
+	})
 }
 
 func FailureOrErrorResponse(c *gin.Context, httpCode int, msg string, err error) {
+	var status string
 	switch httpCode {
-		case 400:
-			c.JSON(httpCode, response{
-				StatusCode: httpCode,
-				Status: "failed, bad request",
-				Message: msg,
-				Data: gin.H{
-					"error" : err.Error(),
-				},
-			})
-		case 401:
-			c.JSON(httpCode, response{
-				StatusCode: httpCode,
-				Status: "failed, status unauthorized",
-				Message: msg,
-				Data: gin.H{
-					"error" : err.Error(),
-				},
-			})
-		case 403:
-			c.JSON(httpCode, response{
-				StatusCode: httpCode,
-				Status: "failed, status forbidden",
-				Message: msg,
-				Data: gin.H{
-					"error" : err.Error(),
-				},
-			})
-		case 404:
-			c.JSON(httpCode, response{
-				StatusCode: httpCode,
-				Status: "failed, status not found",
-				Message: msg,
-				Data: gin.H{
-					"error" : err.Error(),
-				},
-			})
-		case 5:
-			c.JSON(httpCode, response{
-				StatusCode: httpCode,
-				Status: "error, internal server error",
-				Message: msg,
-				Data: gin.H {
-					"error": err.Error(),
-				},
-			})
-			
-		default:
-			c.JSON(httpCode, response{
-				StatusCode: httpCode,
-				Status: "error, internal server error",
-				Message: msg,
-				Data: gin.H {
-					"error": err.Error(),
-				},
-			})
+	case 400:
+		status = "failed, bad request"
+	case 401:
+		status = "failed, status unauthorized"
+	case 403:
+		status = "failed, status forbidden"
+	case 404:
+		status = "failed, status not found"
+	default:
+		status = "error, internal server error"
 	}
+
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	c.JSON(httpCode, response{
+		StatusCode: httpCode,
+		Status:     status,
+		Message:    msg,
+		Data:       gin.H{"error": errMsg},
+	})
 }

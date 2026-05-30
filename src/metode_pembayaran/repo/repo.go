@@ -2,6 +2,7 @@ package repo
 
 import (
 	"rapsshop-project/entities"
+	"rapsshop-project/model"
 
 	"gorm.io/gorm"
 )
@@ -10,7 +11,7 @@ type repoMetodePembayaran struct {
 	db *gorm.DB
 }
 
-func NewRepoMetodePembayaran(db *gorm.DB) entities.MetodePembayaranRepository {
+func NewRepoMetodePembayaran(db *gorm.DB) model.MetodePembayaranRepository {
 	return &repoMetodePembayaran{db: db}
 }
 

@@ -28,7 +28,7 @@ func NewAdminHandler(r *gin.RouterGroup, au model.AdminUsecase, jwtMiddleware gi
 func (ah *AdminHandler) RegisterAdmin(c *gin.Context) {
 	var input model.NewAdmin
 	
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "input not binding with json", err)
 		return
 	}
@@ -48,7 +48,7 @@ func (ah *AdminHandler) RegisterAdmin(c *gin.Context) {
 func (ah *AdminHandler) LoginAdmin(c *gin.Context) {
 	var input model.AdminLogin
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "input not binding with json", err)
 		return
 	}

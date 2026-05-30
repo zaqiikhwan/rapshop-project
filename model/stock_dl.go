@@ -1,6 +1,10 @@
 package model
 
-import "rapsshop-project/entities"
+import (
+	"rapsshop-project/entities"
+
+	"gorm.io/gorm"
+)
 
 // must initiate new value with json for data transfer object
 type InputStockDL struct {
@@ -16,7 +20,9 @@ type StockDLRepository interface {
 	GetAll() ([]entities.StockDL, error)
 	GetLatest() (entities.StockDL, error)
 	UpdateByID(updateStock entities.StockDL, id uint) error
+	AdjustLatest(delta int, prices entities.StockDL) (entities.StockDL, error)
 	DeleteByID(id uint) error
+	WithTx(tx *gorm.DB) StockDLRepository
 }
 
 type StockDLUsecase interface {

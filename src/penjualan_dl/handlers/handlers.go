@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"rapsshop-project/database/mysql"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 	"rapsshop-project/utils"
@@ -16,10 +15,11 @@ import (
 type penjualanDLHandler struct {
 	PenjualanDLUsecase model.PenjualanDLUsecase
 	AdminRepository model.AdminRepository
+	StockDLUsecase model.StockDLUsecase
 }
 
-func NewPenjualanDLHandler(r *gin.RouterGroup, pdlh model.PenjualanDLUsecase, adminRepo model.AdminRepository,jwtMiddleware gin.HandlerFunc) {
-	jualDLHandler := &penjualanDLHandler{PenjualanDLUsecase: pdlh,AdminRepository: adminRepo}
+func NewPenjualanDLHandler(r *gin.RouterGroup, pdlh model.PenjualanDLUsecase, adminRepo model.AdminRepository, stockDLUsecase model.StockDLUsecase, jwtMiddleware gin.HandlerFunc) {
+	jualDLHandler := &penjualanDLHandler{PenjualanDLUsecase: pdlh, AdminRepository: adminRepo, StockDLUsecase: stockDLUsecase}
 	r.POST("/penjualan", jualDLHandler.CreateNewPenjualan)
 	r.GET("/penjualans", jwtMiddleware, jualDLHandler.GetAllPenjualan)
 	r.GET("/penjualan/:id", jwtMiddleware, jualDLHandler.GetDetailPenjualan)
@@ -70,8 +70,8 @@ func (pdlh *penjualanDLHandler) CreateNewPenjualan(c *gin.Context) {
 		return
 	}
 
-	var harga entities.StockDL
-	if err := mysql.InitDatabase().Order("id desc").First(&harga).Error; err != nil {
+	harga, err := pdlh.StockDLUsecase.GetLatestDataStock()
+	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "price not found", err)
 		return
 	}
@@ -168,7 +168,7 @@ func (pdlh *penjualanDLHandler) UpdateStatusPenjualan(c *gin.Context) {
 
 	var input entities.PenjualanDL
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "must bind with json", err)
 		return
 	}
