@@ -1,14 +1,13 @@
 package middleware
 
 import (
-	"os"
 	"testing"
 
 	"github.com/golang-jwt/jwt"
 )
 
 func TestGenerateAndValidateToken(t *testing.T) {
-	os.Setenv("JWT_KEY", "test-secret")
+	t.Setenv("JWT_KEY", "test-secret")
 
 	token, err := GenerateToken("admin-123")
 	if err != nil {
@@ -33,7 +32,7 @@ func TestGenerateAndValidateToken(t *testing.T) {
 }
 
 func TestValidateTokenRejectsGarbage(t *testing.T) {
-	os.Setenv("JWT_KEY", "test-secret")
+	t.Setenv("JWT_KEY", "test-secret")
 	if _, err := ValidateToken("not-a-valid-token"); err == nil {
 		t.Fatal("expected error for invalid token")
 	}

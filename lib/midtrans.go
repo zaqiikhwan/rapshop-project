@@ -78,7 +78,7 @@ func doMidtrans(req *http.Request) (map[string]any, int, error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {

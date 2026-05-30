@@ -37,7 +37,7 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 	if err != nil {
 		return err
 	}
-	defer imageIo.Close()
+	defer func() { _ = imageIo.Close() }()
 
 	if resp := client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo); resp.Key == "" {
 		return errors.New("upload failed: " + resp.Message)

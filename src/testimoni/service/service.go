@@ -31,7 +31,7 @@ func (tu *testimoniUsecase) CreateTestimoni(image *multipart.FileHeader, testi s
 	if err != nil {
 		return err
 	}
-	defer imageIo.Close()
+	defer func() { _ = imageIo.Close() }()
 
 	client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo)
 
@@ -89,7 +89,7 @@ func (tu *testimoniUsecase) UpdateTestimoniByID(id uint, image *multipart.FileHe
 		if err != nil {
 			return entities.Testimoni{}, err
 		}
-		defer imageIo.Close()
+		defer func() { _ = imageIo.Close() }()
 
 		client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo)
 
