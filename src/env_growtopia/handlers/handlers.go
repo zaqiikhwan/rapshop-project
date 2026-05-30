@@ -36,7 +36,7 @@ func (egh *envGrowtopiaHandler) CreateNewEnv(c *gin.Context) {
 }
 
 func (egh *envGrowtopiaHandler) GetLatestEnv(c *gin.Context) {
-	envGrowtopia, err := egh.EnvGrowtopiaUsecase.GetLatestEnv(); 
+	envGrowtopia, err := egh.EnvGrowtopiaUsecase.GetLatestEnv()
 	if err == gorm.ErrRecordNotFound {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "env growtopia not found", err)
 		return
@@ -56,7 +56,7 @@ func (egh *envGrowtopiaHandler) UpdateLatestEnv(c *gin.Context) {
 		return
 	}
 
-	updatedEnv, err := egh.EnvGrowtopiaUsecase.UpdateLatestEnv(&input); 
+	updatedEnv, err := egh.EnvGrowtopiaUsecase.UpdateLatestEnv(&input)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when add new env growtopia", err)
 		return

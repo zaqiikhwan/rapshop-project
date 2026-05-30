@@ -8,13 +8,13 @@ import (
 )
 
 type RekapTotalPembelian struct {
-	Tanggal string `json:"tanggal"`
-	JumlahDL int `json:"jumlah_dl"`
+	Tanggal  string `json:"tanggal"`
+	JumlahDL int    `json:"jumlah_dl"`
 }
 
 type PembelianDLRepository interface {
 	Create(input entities.PembelianDL) error
-	GetAll(_startInt int , _endInt int) ([]entities.PembelianDL, int, error)
+	GetAll(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
 	UpdateByID(input entities.PembelianDL, id string) error
 	GetByID(id string) (entities.PembelianDL, error)
 	GetTotalPembelian(date string) ([]RekapTotalPembelian, error)
@@ -26,31 +26,31 @@ type PembelianDLRepository interface {
 type PembelianDLUsecase interface {
 	// CreateDataPembelian(world string, nama string, grow_id string, jenis_item bool, jumlah_dl int, wa string, metode_transfer int, gambar string, id string) error
 	GetTotal(date string) ([]RekapTotalPembelian, error)
-	GetDetailByID(id string)(entities.PembelianDL, error)
+	GetDetailByID(id string) (entities.PembelianDL, error)
 	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
 	CreateDataPembelian(input entities.PembelianDL) error
 	ChargeAndCreate(input entities.PembelianDL) (map[string]any, error)
 	GetLiveStatus(id string) (map[string]any, error)
 	UpdateStatusPembayaran(id string) error
 	UpdateTambahBukti(id string, input entities.PembelianDL) error
-	UpdateStatusPengiriman(id string, input entities.PembelianDL) error 
+	UpdateStatusPengiriman(id string, input entities.PembelianDL) error
 	UpdateStatusButtonBayar(id string, input entities.PembelianDL) error
-	UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error 
+	UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error
 }
 
 type MidtransData struct {
-	typePayment string 
-	jenisBank string
+	typePayment  string
+	jenisBank    string
 	newPembelian entities.PembelianDL
-	harga entities.StockDL
+	harga        entities.StockDL
 }
 
 func NewMidtransData(typePayment string, jenisBank string, newPembelian entities.PembelianDL, harga entities.StockDL) *MidtransData {
 	return &MidtransData{
-		typePayment: typePayment,
-		jenisBank: jenisBank,
+		typePayment:  typePayment,
+		jenisBank:    jenisBank,
 		newPembelian: newPembelian,
-		harga: harga,
+		harga:        harga,
 	}
 }
 
@@ -62,35 +62,35 @@ func (m *MidtransData) IniDataPembelian() (map[string]any, int64) {
 		var Items = []midtrans.ItemDetails{
 			{
 				ID:    m.newPembelian.ID,
-				Price: int64(m.harga.HargaBeliDL) ,
+				Price: int64(m.harga.HargaBeliDL),
 				Qty:   int32(m.newPembelian.JumlahDL),
 				Name:  "Item DL",
 			},
 		}
 		payload["item_details"] = Items
-		transactionDetailsContent["gross_amount"] = (Items[0].Price * int64(Items[0].Qty)) 
-	} else if  m.newPembelian.JumlahDL % 100 == 0 && m.newPembelian.JumlahDL > 0 {
+		transactionDetailsContent["gross_amount"] = (Items[0].Price * int64(Items[0].Qty))
+	} else if m.newPembelian.JumlahDL%100 == 0 && m.newPembelian.JumlahDL > 0 {
 		var Items = []midtrans.ItemDetails{
 			{
 				ID:    m.newPembelian.ID,
-				Price: int64(m.harga.HargaBeliBGL) ,
+				Price: int64(m.harga.HargaBeliBGL),
 				Qty:   int32(m.newPembelian.JumlahDL) / 100,
 				Name:  "Item BGL",
 			},
 		}
 		payload["item_details"] = Items
-		transactionDetailsContent["gross_amount"] = (Items[0].Price * int64(Items[0].Qty)) 
+		transactionDetailsContent["gross_amount"] = (Items[0].Price * int64(Items[0].Qty))
 	} else if m.newPembelian.JumlahDL > 100 {
 		var Items = []midtrans.ItemDetails{
 			{
 				ID:    m.newPembelian.ID,
-				Price: int64(m.harga.HargaBeliBGL) ,
+				Price: int64(m.harga.HargaBeliBGL),
 				Qty:   int32(m.newPembelian.JumlahDL / 100),
 				Name:  "Item BGL",
 			},
 			{
 				ID:    m.newPembelian.ID,
-				Price: int64(m.harga.HargaBeliDL) ,
+				Price: int64(m.harga.HargaBeliDL),
 				Qty:   int32(m.newPembelian.JumlahDL % 100),
 				Name:  "Item DL",
 			},
@@ -119,10 +119,9 @@ func (m *MidtransData) IniDataPembelian() (map[string]any, int64) {
 		qrisContent["acquirer"] = "gopay"
 	}
 
-
 	payload["payment_type"] = m.typePayment
 	payload["transaction_details"] = transactionDetailsContent
-	
+
 	payload["customer_details"] = customerDetails
 	if len(gopayContent) != 0 {
 		payload["gopay"] = gopayContent

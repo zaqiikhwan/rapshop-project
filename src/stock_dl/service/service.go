@@ -16,11 +16,11 @@ func NewStockDLUsecase(repoStockDL model.StockDLRepository) model.StockDLUsecase
 
 func (sdlu *stockDLUsecase) CreateNewStock(input *model.InputStockDL) error {
 	newStock := entities.StockDL{
-		StockDL: input.StockDL,
-		HargaJualDL: input.HargaJualDL,
-		HargaBeliDL: input.HargaBeliDL,
+		StockDL:      input.StockDL,
+		HargaJualDL:  input.HargaJualDL,
+		HargaBeliDL:  input.HargaBeliDL,
 		HargaBeliBGL: input.HargaBeliBGL,
-		Waktu: time.Now(),
+		Waktu:        time.Now(),
 	}
 	if err := sdlu.StockDLRepository.Create(newStock); err != nil {
 		return err
@@ -78,5 +78,3 @@ func (sdlu *stockDLUsecase) DeleteStock() error {
 	}
 	return nil
 }
-
-

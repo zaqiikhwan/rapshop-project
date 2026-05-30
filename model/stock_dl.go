@@ -8,10 +8,10 @@ import (
 
 // must initiate new value with json for data transfer object
 type InputStockDL struct {
-	StockDL int `json:"stock_dl"`
-	Profit  int `json:"profit"`
-	HargaJualDL int `json:"harga_jual_dl"`
-	HargaBeliDL int `json:"harga_beli_dl"`
+	StockDL      int `json:"stock_dl"`
+	Profit       int `json:"profit"`
+	HargaJualDL  int `json:"harga_jual_dl"`
+	HargaBeliDL  int `json:"harga_beli_dl"`
 	HargaBeliBGL int `json:"harga_beli_bgl"`
 }
 

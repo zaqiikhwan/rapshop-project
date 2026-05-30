@@ -6,9 +6,10 @@ import (
 )
 
 // Locks the agreed pricing rule:
-//   1–99 DL  -> priced per DL (HargaBeliDL)
-//   multiple of 100 -> priced per BGL (HargaBeliBGL), qty = DL/100
-//   mixed   -> BGL portion + DL remainder
+//
+//	1–99 DL  -> priced per DL (HargaBeliDL)
+//	multiple of 100 -> priced per BGL (HargaBeliBGL), qty = DL/100
+//	mixed   -> BGL portion + DL remainder
 func TestIniDataPembelianGrossAmount(t *testing.T) {
 	harga := entities.StockDL{HargaBeliDL: 100, HargaBeliBGL: 9000}
 

@@ -22,7 +22,7 @@ func (tr *testimoniRepository) Create(newTesti entities.Testimoni) error {
 	return nil
 }
 
-func(tr *testimoniRepository) GetAll() ([]model.TestimoniDto, error) {
+func (tr *testimoniRepository) GetAll() ([]model.TestimoniDto, error) {
 	var testimoni entities.Testimoni
 	var allTestimoni []model.TestimoniDto
 	if err := tr.db.Model(&testimoni).Find(&allTestimoni).Error; err != nil {

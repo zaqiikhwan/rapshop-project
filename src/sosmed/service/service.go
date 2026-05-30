@@ -17,7 +17,7 @@ func (su *sosmedUsecase) CreateSosmed(input *model.InputSosmed) error {
 	newSosmed := entities.Sosmed{
 		Username: input.Username,
 		Platform: input.Platform,
-		Link: input.Link,
+		Link:     input.Link,
 	}
 	if err := su.SosmedRepository.Create(newSosmed); err != nil {
 		return err
@@ -47,10 +47,10 @@ func (su *sosmedUsecase) GetSosmedByID(id uint) (entities.Sosmed, error) {
 }
 
 func (su *sosmedUsecase) UpdateSosmedByID(id uint, input *model.InputSosmed) (entities.Sosmed, error) {
-	updateSosmed := entities.Sosmed {
+	updateSosmed := entities.Sosmed{
 		Username: input.Username,
 		Platform: input.Platform,
-		Link: input.Link,
+		Link:     input.Link,
 	}
 	if err := su.SosmedRepository.UpdateByID(updateSosmed, id); err != nil {
 		return entities.Sosmed{}, err
@@ -60,7 +60,7 @@ func (su *sosmedUsecase) UpdateSosmedByID(id uint, input *model.InputSosmed) (en
 		return detailSosmed, err
 	}
 	return detailSosmed, nil
-} 
+}
 
 func (su *sosmedUsecase) DeleteSosmedByID(id uint) error {
 	if err := su.SosmedRepository.DeleteByID(id); err != nil {
@@ -68,5 +68,3 @@ func (su *sosmedUsecase) DeleteSosmedByID(id uint) error {
 	}
 	return nil
 }
-
-

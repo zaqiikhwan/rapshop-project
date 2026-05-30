@@ -17,7 +17,7 @@ type SosmedDto struct {
 
 type SosmedRepository interface {
 	Create(newSosmed entities.Sosmed) error
-	GetAll() ([]SosmedDto, error) 
+	GetAll() ([]SosmedDto, error)
 	GetByID(id uint) (entities.Sosmed, error)
 	UpdateByID(updateSosmed entities.Sosmed, id uint) error
 	DeleteByID(id uint) error

@@ -8,7 +8,7 @@ import (
 )
 
 type InputPenjualanDL struct {
-	Nama 			 string `json:"nama"`
+	Nama             string `json:"nama"`
 	JumlahDL         int    `json:"jumlah_dl"`
 	JumlahTransaksi  int    `json:"jumlah_transaksi"`
 	WA               string `json:"wa"`
@@ -17,30 +17,30 @@ type InputPenjualanDL struct {
 	NomorTransfer    string `json:"nomor_transfer"`
 	StatusPembayaran int    `json:"status"`
 	BuktiDL          string `json:"bukti_dl"`
-	HargaJual 		 int 	`json:"harga_jual"`
+	HargaJual        int    `json:"harga_jual"`
 }
 
 // fitur laporan
 type RekapTransaksiPenjualan struct {
 	JumlahTransaksi int `json:"jumlah_transaksi"`
-	JumlahDL int `json:"jumlah_dl"`
-	Rate int `json:"rate"`
+	JumlahDL        int `json:"jumlah_dl"`
+	Rate            int `json:"rate"`
 }
 
 type RekapTransaksiPembelian struct {
 	JumlahTransaksi int `json:"jumlah_transaksi"`
-	JumlahDL int `json:"jumlah_dl"`
-	Rate int `json:"rate"`
+	JumlahDL        int `json:"jumlah_dl"`
+	Rate            int `json:"rate"`
 }
 
 type RekapTotalPenjualan struct {
-	Tanggal string `json:"tanggal"`
-	JumlahDL int `json:"jumlah_dl"`
+	Tanggal  string `json:"tanggal"`
+	JumlahDL int    `json:"jumlah_dl"`
 }
 
 type RekapProfit struct {
 	Tanggal string `json:"tanggal"`
-	Profit int `json:"profit"`
+	Profit  int    `json:"profit"`
 }
 
 type Total struct {
@@ -63,7 +63,7 @@ type PenjualanDLRepository interface {
 
 type PenjualanDLUsecase interface {
 	Create(image *multipart.FileHeader, jumlahDL int, jumlahTransaksi int, wa string, transfer string, nomorTransfer string, nama string, hargaJualDL int) error
-	GetAll(_startInt int , _endInt int) ([]entities.PenjualanDL, int, error)
+	GetAll(_startInt int, _endInt int) ([]entities.PenjualanDL, int, error)
 	GetByID(id uint) (entities.PenjualanDL, error)
 	GetByDate(date string) ([]RekapTransaksiPenjualan, []RekapTransaksiPembelian, error)
 	GetTotal(date string) ([]RekapTotalPenjualan, error)

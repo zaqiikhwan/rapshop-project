@@ -36,10 +36,10 @@ func (tu *testimoniUsecase) CreateTestimoni(image *multipart.FileHeader, testi s
 	client.UploadFile(os.Getenv("STORAGE_NAME"), image.Filename, imageIo)
 
 	newTesti := entities.Testimoni{
-		Gambar: os.Getenv("BASE_URL") + image.Filename,
+		Gambar:    os.Getenv("BASE_URL") + image.Filename,
 		Testimoni: testi,
-		Username: uname,
-		Title: title,
+		Username:  uname,
+		Title:     title,
 	}
 
 	if err := tu.TestimoniRepository.Create(newTesti); err != nil {
@@ -95,9 +95,9 @@ func (tu *testimoniUsecase) UpdateTestimoniByID(id uint, image *multipart.FileHe
 
 		updateTesti = entities.Testimoni{
 			Testimoni: testi,
-			Username: uname,
-			Title: title,
-			Gambar: os.Getenv("BASE_URL") + image.Filename,
+			Username:  uname,
+			Title:     title,
+			Gambar:    os.Getenv("BASE_URL") + image.Filename,
 		}
 
 		err = tu.TestimoniRepository.UpdateByID(updateTesti, id)
@@ -108,12 +108,12 @@ func (tu *testimoniUsecase) UpdateTestimoniByID(id uint, image *multipart.FileHe
 	} else {
 		updateTesti = entities.Testimoni{
 			Testimoni: testi,
-			Username: uname,
-			Title: title,
+			Username:  uname,
+			Title:     title,
 		}
-	
+
 		err = tu.TestimoniRepository.UpdateByID(updateTesti, id)
-	
+
 		if err != nil {
 			return entities.Testimoni{}, err
 		}

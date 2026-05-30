@@ -11,13 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type AdminHandler struct{
+type AdminHandler struct {
 	model.AdminUsecase
 }
 
 func NewAdminHandler(r *gin.RouterGroup, au model.AdminUsecase, jwtMiddleware gin.HandlerFunc) {
 	adminHandler := &AdminHandler{AdminUsecase: au}
-	api := r.Group("/admin") 
+	api := r.Group("/admin")
 	{
 		api.POST("/register", adminHandler.RegisterAdmin)
 		api.POST("/login", adminHandler.LoginAdmin)
@@ -27,14 +27,14 @@ func NewAdminHandler(r *gin.RouterGroup, au model.AdminUsecase, jwtMiddleware gi
 
 func (ah *AdminHandler) RegisterAdmin(c *gin.Context) {
 	var input model.NewAdmin
-	
+
 	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "input not binding with json", err)
 		return
 	}
 	if input.Token != os.Getenv("TOKEN") {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "token not match", errors.New("token is not valid with the key"))
-		return 
+		return
 	}
 
 	if err := ah.Register(&input); err != nil {

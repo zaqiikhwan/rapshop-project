@@ -14,10 +14,10 @@ func NewEnvGrowtopiaUsecase(envGrowRepo model.GrowtopiaEnvRepository) model.Grow
 }
 
 func (egu *envGrowtopiaUsecase) CreateNewEnv(input *model.InputGrowtopiaEnv) error {
-	newEnv := entities.Growtopia {
-		World: input.World,
+	newEnv := entities.Growtopia{
+		World:    input.World,
 		Password: input.Password,
-		Owner: input.Owner,
+		Owner:    input.Owner,
 	}
 	if err := egu.EnvGrowtopiaRepo.Create(newEnv); err != nil {
 		return err
@@ -38,10 +38,10 @@ func (egu *envGrowtopiaUsecase) UpdateLatestEnv(input *model.InputGrowtopiaEnv) 
 	if err != nil {
 		return detail, err
 	}
-	updateEnv := entities.Growtopia {
-		World: input.World,
+	updateEnv := entities.Growtopia{
+		World:    input.World,
 		Password: input.Password,
-		Owner: input.Owner,
+		Owner:    input.Owner,
 	}
 
 	err = egu.EnvGrowtopiaRepo.UpdateByID(updateEnv, detail.ID)

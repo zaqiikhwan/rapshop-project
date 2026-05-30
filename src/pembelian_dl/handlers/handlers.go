@@ -21,20 +21,21 @@ import (
 
 type pembelianHandler struct {
 	ServicePembelianDL model.PembelianDLUsecase
-	AdminRepository model.AdminRepository
-	PaymentUsecase model.MetodePembayaranUsecase
-	StockDLUsecase model.StockDLUsecase
+	AdminRepository    model.AdminRepository
+	PaymentUsecase     model.MetodePembayaranUsecase
+	StockDLUsecase     model.StockDLUsecase
 }
-func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsecase, adminRepo model.AdminRepository, usecasePayment model.MetodePembayaranUsecase, stockDLUsecase model.StockDLUsecase, jwtMiddleware gin.HandlerFunc){
-	pembelianHandler := &pembelianHandler{ServicePembelianDL: usecaseBeliDL, AdminRepository: adminRepo, PaymentUsecase: usecasePayment, StockDLUsecase: stockDLUsecase }
+
+func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsecase, adminRepo model.AdminRepository, usecasePayment model.MetodePembayaranUsecase, stockDLUsecase model.StockDLUsecase, jwtMiddleware gin.HandlerFunc) {
+	pembelianHandler := &pembelianHandler{ServicePembelianDL: usecaseBeliDL, AdminRepository: adminRepo, PaymentUsecase: usecasePayment, StockDLUsecase: stockDLUsecase}
 	r.POST("/pembelian", pembelianHandler.HandlerPembelian)
 	r.POST("/new/pembelian", pembelianHandler.NewHandlerPembelian)
 	r.POST("/pembelian/status", pembelianHandler.HandlerStatus)
-	r.GET("/pembelians",jwtMiddleware ,pembelianHandler.GetAllDataPembelian)
-	r.GET("/pembelian/total",jwtMiddleware ,pembelianHandler.GetTotalPembelian)
+	r.GET("/pembelians", jwtMiddleware, pembelianHandler.GetAllDataPembelian)
+	r.GET("/pembelian/total", jwtMiddleware, pembelianHandler.GetTotalPembelian)
 	r.GET("/pembelian/:id", pembelianHandler.GetDetailPembelian) // detail data dari database
-	r.GET("/pembelian/status/:id", pembelianHandler.GetStatus) // detail status dari midtrans
-	r.PATCH("/pembelian/:id", jwtMiddleware,pembelianHandler.UpdateStatusPengiriman)
+	r.GET("/pembelian/status/:id", pembelianHandler.GetStatus)   // detail status dari midtrans
+	r.PATCH("/pembelian/:id", jwtMiddleware, pembelianHandler.UpdateStatusPengiriman)
 	r.PATCH("/pembelian/button/:id", pembelianHandler.NewUpdateButton)
 	r.PATCH("/pembelian/confirm/:id", jwtMiddleware, pembelianHandler.NewUpdateConfirmPayment)
 	r.Static("/public", "./public/payment")
@@ -68,7 +69,7 @@ func (ph *pembelianHandler) UploadFile(c *gin.Context) {
 	id := c.Param("id")
 
 	if err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "get form err: " + err.Error(), err)
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "get form err: "+err.Error(), err)
 		return
 	}
 
@@ -96,7 +97,6 @@ func (ph *pembelianHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	
 	utils.SuccessResponse(c, http.StatusOK, "success upload file", linkImage)
 }
 
@@ -121,7 +121,7 @@ func (ph *pembelianHandler) NewHandlerPembelian(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "payment method not found", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", map[string]any{"id_transaksi":input.ID, "payment":paymentMethod})
+	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", map[string]any{"id_transaksi": input.ID, "payment": paymentMethod})
 }
 
 func (ph *pembelianHandler) NewUpdateButton(c *gin.Context) {
@@ -227,7 +227,7 @@ func (ph *pembelianHandler) GetAllDataPembelian(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", gin.H{"data": allData,"total": lenData})
+	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", gin.H{"data": allData, "total": lenData})
 }
 
 func (ph *pembelianHandler) GetStatus(c *gin.Context) {

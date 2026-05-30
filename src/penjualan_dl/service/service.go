@@ -13,9 +13,9 @@ import (
 )
 
 type penjualanDLUsecase struct {
-	db *gorm.DB
+	db                    *gorm.DB
 	PenjualanDLRepository model.PenjualanDLRepository
-	StockRepo model.StockDLRepository
+	StockRepo             model.StockDLRepository
 }
 
 func NewPenjualanDLUsecase(db *gorm.DB, repoJualDL model.PenjualanDLRepository, stockRepo model.StockDLRepository) model.PenjualanDLUsecase {
@@ -46,15 +46,15 @@ func (pdlu *penjualanDLUsecase) Create(image *multipart.FileHeader, jumlahDL int
 	location := time.FixedZone("UTC+7", 7*60*60)
 	GMT_7 := time.Now().In(location)
 	newPenjualan := entities.PenjualanDL{
-		Nama: nama,
-		BuktiDL: os.Getenv("BASE_URL") + image.Filename,
-		HargaJual: hargaJualDL,
-		JumlahDL: jumlahDL,
+		Nama:            nama,
+		BuktiDL:         os.Getenv("BASE_URL") + image.Filename,
+		HargaJual:       hargaJualDL,
+		JumlahDL:        jumlahDL,
 		JumlahTransaksi: jumlahTransaksi,
-		WA: wa,
-		Transfer: transfer,
-		NomorTransfer: nomorTransfer,
-		CreatedAt: GMT_7,
+		WA:              wa,
+		Transfer:        transfer,
+		NomorTransfer:   nomorTransfer,
+		CreatedAt:       GMT_7,
 	}
 
 	if err := pdlu.PenjualanDLRepository.Create(newPenjualan); err != nil {

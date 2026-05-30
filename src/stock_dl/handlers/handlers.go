@@ -59,7 +59,7 @@ func (sdlh *stockDLHandler) GetLatestStockData(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "stock found", stockDL)
 }
 
-func(sdlh *stockDLHandler) UpdateStockData(c *gin.Context) {
+func (sdlh *stockDLHandler) UpdateStockData(c *gin.Context) {
 	var updateStock model.InputStockDL
 
 	if err := c.ShouldBindJSON(&updateStock); err != nil {
@@ -82,10 +82,10 @@ func(sdlh *stockDLHandler) UpdateStockData(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "success update data medsos", result)
 }
 
-func(sdlh *stockDLHandler) DeleteStockData(c *gin.Context) {
+func (sdlh *stockDLHandler) DeleteStockData(c *gin.Context) {
 	if err := sdlh.StockDLUsecase.DeleteStock(); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed to delete data stock", err)
-		return	
+		return
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "success delete data stock", nil)

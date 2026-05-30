@@ -40,14 +40,14 @@ func (rp *repoPembelianDL) MarkShipped(id string, editor string) (bool, error) {
 	return res.RowsAffected == 1, res.Error
 }
 
-func(rp *repoPembelianDL) Create(input entities.PembelianDL) error {
+func (rp *repoPembelianDL) Create(input entities.PembelianDL) error {
 	if err := rp.db.Create(&input).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func(rp *repoPembelianDL) GetAll(_startInt int, _endInt int) ([]entities.PembelianDL, int, error) {
+func (rp *repoPembelianDL) GetAll(_startInt int, _endInt int) ([]entities.PembelianDL, int, error) {
 	var allPembelian []entities.PembelianDL
 	var total int64
 	if _startInt < 1 {
@@ -91,24 +91,24 @@ func (rp *repoPembelianDL) GetTotalPembelian(date string) ([]model.RekapTotalPem
 	arrayMonthInt, _ := strconv.Atoi(arrayDate[1])
 
 	var arrayTanggalStr []string
-	if arrayYearInt % 4 == 0 && arrayMonthInt == 2{
-		jumlahHari := 29;
+	if arrayYearInt%4 == 0 && arrayMonthInt == 2 {
+		jumlahHari := 29
 		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
 	} else if arrayMonthInt == 2 {
-		jumlahHari := 28;
+		jumlahHari := 28
 		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
-	} else if ((arrayMonthInt % 2 != 0 && (arrayMonthInt != 9 && arrayMonthInt != 11))|| arrayMonthInt == 8 || arrayMonthInt == 10 || arrayMonthInt == 12){
-		jumlahHari := 31;
+	} else if (arrayMonthInt%2 != 0 && (arrayMonthInt != 9 && arrayMonthInt != 11)) || arrayMonthInt == 8 || arrayMonthInt == 10 || arrayMonthInt == 12 {
+		jumlahHari := 31
 		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
 	} else {
-		jumlahHari := 30;
+		jumlahHari := 30
 		arrayTanggalStr = GeneratorTanggal(arrayDate, jumlahHari)
 	}
 
 	for i := 0; i < len(arrayTanggalStr); i++ {
 
 		queryDate := "%" + arrayTanggalStr[i] + "%"
-	
+
 		if err := rp.db.Raw("select sum(jumlah_dl) from pembelian_dls where created_at LIKE ? and (status_pembayaran = ? or status_pembayaran = ?)", queryDate, "success", "dibayar").Scan(&totalPembelianTunggal.JumlahDL).Error; err != nil {
 			totalPembelianTunggal.JumlahDL = 0
 		}
@@ -116,7 +116,7 @@ func (rp *repoPembelianDL) GetTotalPembelian(date string) ([]model.RekapTotalPem
 		totalPembelianTunggal.Tanggal = arrayTanggalStr[i][8:10]
 		totalPembelian = append(totalPembelian, totalPembelianTunggal)
 	}
-	
+
 	return totalPembelian, nil
 }
 
@@ -124,19 +124,19 @@ func GeneratorTanggal(arrayDate []string, jumlahHari int) []string {
 	var arrayTanggalStrCheck []string
 
 	for i := 1; i <= jumlahHari; i++ {
-		arrDate := [1]int{i}; // {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} // ini buat tanggal
+		arrDate := [1]int{i} // {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} // ini buat tanggal
 		var arrDateStr [1]string
 		var tglStr string
 		arrDateStr = [1]string{strconv.Itoa(arrDate[0])}
 		if arrDate[0] < 10 {
-			combine := [3]string{"0",arrDateStr[0]}
+			combine := [3]string{"0", arrDateStr[0]}
 			tglStr = strings.Join(combine[0:2], "")
 		} else {
 			tglStr = arrDateStr[0]
 		}
 
-		combine := [3]string{arrayDate[0],arrayDate[1],tglStr}
+		combine := [3]string{arrayDate[0], arrayDate[1], tglStr}
 		arrayTanggalStrCheck = append(arrayTanggalStrCheck, strings.Join(combine[0:3], "-"))
-	}	
+	}
 	return arrayTanggalStrCheck
 }

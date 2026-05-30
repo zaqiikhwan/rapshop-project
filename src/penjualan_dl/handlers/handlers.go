@@ -14,8 +14,8 @@ import (
 
 type penjualanDLHandler struct {
 	PenjualanDLUsecase model.PenjualanDLUsecase
-	AdminRepository model.AdminRepository
-	StockDLUsecase model.StockDLUsecase
+	AdminRepository    model.AdminRepository
+	StockDLUsecase     model.StockDLUsecase
 }
 
 func NewPenjualanDLHandler(r *gin.RouterGroup, pdlh model.PenjualanDLUsecase, adminRepo model.AdminRepository, stockDLUsecase model.StockDLUsecase, jwtMiddleware gin.HandlerFunc) {
@@ -40,7 +40,7 @@ func (pdlh *penjualanDLHandler) GetRekapByDate(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusOK, "success fetch rekap all data by date", map[string]any{"tanggal" : _date, "penjualan": rekapJual, "pembelian": rekapBeli})
+	utils.SuccessResponse(c, http.StatusOK, "success fetch rekap all data by date", map[string]any{"tanggal": _date, "penjualan": rekapJual, "pembelian": rekapBeli})
 }
 
 func (pdlh *penjualanDLHandler) GetTotalPenjualan(c *gin.Context) {
@@ -78,7 +78,7 @@ func (pdlh *penjualanDLHandler) CreateNewPenjualan(c *gin.Context) {
 
 	// total := harga.HargaJualDL * jumlahDL
 
-	if err := pdlh.PenjualanDLUsecase.Create(image, jumlahDL, (harga.HargaJualDL*jumlahDL), wa, transfer, nomorTransfer, nama, harga.HargaJualDL); err != nil {
+	if err := pdlh.PenjualanDLUsecase.Create(image, jumlahDL, (harga.HargaJualDL * jumlahDL), wa, transfer, nomorTransfer, nama, harga.HargaJualDL); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed make new penjualan_dl", err)
 		return
 	}
@@ -106,7 +106,7 @@ func (pdlh *penjualanDLHandler) GetAllPenjualan(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch all data", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", gin.H{"data": allData,"total": len})
+	utils.SuccessResponse(c, http.StatusOK, "success fetch all data", gin.H{"data": allData, "total": len})
 }
 
 func (pdlh *penjualanDLHandler) GetDetailPenjualan(c *gin.Context) {

@@ -69,7 +69,7 @@ func (sh *sosmedHandler) GetDetailSosmedByID(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "sosmed found", sosmed)
 }
 
-func(sh *sosmedHandler) UpdateSosmedByID(c *gin.Context) {
+func (sh *sosmedHandler) UpdateSosmedByID(c *gin.Context) {
 	id := c.Param("id")
 
 	idUint, err := strconv.ParseUint(id, 10, 64)
@@ -101,7 +101,7 @@ func(sh *sosmedHandler) UpdateSosmedByID(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "success update data medsos", result)
 }
 
-func(sh *sosmedHandler) DeleteSosmedByID(c *gin.Context) {
+func (sh *sosmedHandler) DeleteSosmedByID(c *gin.Context) {
 	id := c.Param("id")
 
 	idUint, err := strconv.ParseUint(id, 10, 64)
@@ -113,7 +113,7 @@ func(sh *sosmedHandler) DeleteSosmedByID(c *gin.Context) {
 
 	if err := sh.SosmedUsecase.DeleteSosmedByID(uint(idUint)); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed to delete data sosmed", err)
-		return	
+		return
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "success delete data sosmed", nil)

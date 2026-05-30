@@ -9,15 +9,15 @@ type TestimoniDto struct {
 	ID        uint   `json:"id"`
 	Gambar    string `json:"gambar"`
 	Testimoni string `json:"testimoni"`
-	Username string `json:"username"`
-	Title string `json:"title"`
+	Username  string `json:"username"`
+	Title     string `json:"title"`
 }
 
 type InputTestimoni struct {
 	Gambar    string `json:"gambar"`
 	Testimoni string `json:"testimoni"`
-	Username string `json:"username"`
-	Title string `json:"title"`
+	Username  string `json:"username"`
+	Title     string `json:"title"`
 }
 
 type TestimoniRepository interface {

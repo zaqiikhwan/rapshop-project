@@ -12,17 +12,17 @@ import (
 )
 
 type servicePembelianDL struct {
-	db *gorm.DB
-	RepoPembelianDL model.PembelianDLRepository
-	StockRepo model.StockDLRepository
+	db                 *gorm.DB
+	RepoPembelianDL    model.PembelianDLRepository
+	StockRepo          model.StockDLRepository
 	midtransCoreClient *lib.CoreAPI
 }
 
 func NewServicePembelianDL(db *gorm.DB, repoBeliDL model.PembelianDLRepository, ca *lib.CoreAPI, stockRepo model.StockDLRepository) model.PembelianDLUsecase {
 	return &servicePembelianDL{
-		db: db,
-		RepoPembelianDL: repoBeliDL,
-		StockRepo: stockRepo,
+		db:                 db,
+		RepoPembelianDL:    repoBeliDL,
+		StockRepo:          stockRepo,
 		midtransCoreClient: ca,
 	}
 }
@@ -90,17 +90,17 @@ func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) 
 	location := time.FixedZone("UTC+7", 7*60*60)
 	GMT_7 := time.Now().In(location)
 	newPembelian := entities.PembelianDL{
-		ID: input.ID,
-		World: input.World,
-		Nama: input.Nama,
-		GrowID: input.GrowID,
-		JenisItem: input.JenisItem,
-		JumlahDL: input.JumlahDL,
-		WA: input.WA,
-		MetodeTransfer: input.MetodeTransfer,
+		ID:              input.ID,
+		World:           input.World,
+		Nama:            input.Nama,
+		GrowID:          input.GrowID,
+		JenisItem:       input.JenisItem,
+		JumlahDL:        input.JumlahDL,
+		WA:              input.WA,
+		MetodeTransfer:  input.MetodeTransfer,
 		JumlahTransaksi: input.JumlahTransaksi,
-		HargaBeli: input.HargaBeli,
-		CreatedAt: GMT_7,
+		HargaBeli:       input.HargaBeli,
+		CreatedAt:       GMT_7,
 	}
 
 	if err := spdl.RepoPembelianDL.Create(newPembelian); err != nil {
@@ -123,18 +123,18 @@ func (spdl *servicePembelianDL) CreateDataPembelianManual(input entities.Pembeli
 
 	location := time.FixedZone("UTC+7", 7*60*60)
 	newPembelian := entities.PembelianDL{
-		ID: input.ID,
-		World: input.World,
-		Nama: input.Nama,
-		GrowID: input.GrowID,
-		JenisItem: input.JenisItem,
-		JumlahDL: input.JumlahDL,
-		WA: input.WA,
-		HargaBeli: hargaBeli.HargaBeliDL,
-		MetodeTransfer: input.MetodeTransfer,
+		ID:              input.ID,
+		World:           input.World,
+		Nama:            input.Nama,
+		GrowID:          input.GrowID,
+		JenisItem:       input.JenisItem,
+		JumlahDL:        input.JumlahDL,
+		WA:              input.WA,
+		HargaBeli:       hargaBeli.HargaBeliDL,
+		MetodeTransfer:  input.MetodeTransfer,
 		JumlahTransaksi: total,
 		BuktiPembayaran: input.BuktiPembayaran,
-		CreatedAt: time.Now().In(location),
+		CreatedAt:       time.Now().In(location),
 	}
 
 	return spdl.RepoPembelianDL.Create(newPembelian)
@@ -149,7 +149,7 @@ func (spdl *servicePembelianDL) GetAllPembelian(_startInt int, _endInt int) ([]e
 	return allData, lenData, nil
 }
 
-func(spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
+func (spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 	midtransReport, err := spdl.midtransCoreClient.HandleNotification(id)
 	if err != nil {
 		return err
@@ -199,7 +199,7 @@ func(spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 	})
 }
 
-func(spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities.PembelianDL) error {
+func (spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities.PembelianDL) error {
 	// Decrement stock exactly once, only on the not-shipped -> shipped transition.
 	if input.StatusPengiriman != nil && *input.StatusPengiriman {
 		return spdl.db.Transaction(func(tx *gorm.DB) error {
@@ -216,13 +216,13 @@ func(spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities.
 		})
 	}
 	return spdl.RepoPembelianDL.UpdateByID(entities.PembelianDL{
-		EditorStatus: input.EditorStatus,
+		EditorStatus:     input.EditorStatus,
 		StatusPengiriman: input.StatusPengiriman,
 	}, id)
 }
 
-func(spdl *servicePembelianDL) UpdateStatusButtonBayar(id string, input entities.PembelianDL) error {
-	statusBayar := entities.PembelianDL {
+func (spdl *servicePembelianDL) UpdateStatusButtonBayar(id string, input entities.PembelianDL) error {
+	statusBayar := entities.PembelianDL{
 		ButtonBayar: input.ButtonBayar,
 	}
 	if err := spdl.RepoPembelianDL.UpdateByID(statusBayar, id); err != nil {
@@ -231,9 +231,9 @@ func(spdl *servicePembelianDL) UpdateStatusButtonBayar(id string, input entities
 	return nil
 }
 
-func(spdl *servicePembelianDL) UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error {
-	statusBayar := entities.PembelianDL {
-		EditorStatus: input.EditorStatus,
+func (spdl *servicePembelianDL) UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error {
+	statusBayar := entities.PembelianDL{
+		EditorStatus:     input.EditorStatus,
 		StatusPembayaran: input.StatusPembayaran,
 	}
 	if err := spdl.RepoPembelianDL.UpdateByID(statusBayar, id); err != nil {
@@ -243,7 +243,7 @@ func(spdl *servicePembelianDL) UpdateStatusPembayaranAdmin(id string, input enti
 }
 
 func (spdl *servicePembelianDL) UpdateTambahBukti(id string, input entities.PembelianDL) error {
-	buktiBayar := entities.PembelianDL {
+	buktiBayar := entities.PembelianDL{
 		BuktiPembayaran: input.BuktiPembayaran,
 	}
 
@@ -253,7 +253,7 @@ func (spdl *servicePembelianDL) UpdateTambahBukti(id string, input entities.Pemb
 	return nil
 }
 
-func(spdl *servicePembelianDL) GetDetailByID(id string) (entities.PembelianDL, error) {
+func (spdl *servicePembelianDL) GetDetailByID(id string) (entities.PembelianDL, error) {
 	dataPenjualan, err := spdl.RepoPembelianDL.GetByID(id)
 	if err != nil {
 		return dataPenjualan, err

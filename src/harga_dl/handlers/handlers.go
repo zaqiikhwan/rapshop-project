@@ -21,7 +21,7 @@ func NewHargaDLHandler(r *gin.RouterGroup, hdlh model.HargaDLUsecase, jwtMiddlew
 	r.DELETE("/price", jwtMiddleware, hargaDLHandler.DeleteLatestPrice)
 }
 
-func (hdlh *hargaDLHandler) CreateNewPrice(c *gin.Context){
+func (hdlh *hargaDLHandler) CreateNewPrice(c *gin.Context) {
 	var input model.InputHargaDL
 
 	if err := c.ShouldBindJSON(&input); err != nil {

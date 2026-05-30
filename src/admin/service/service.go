@@ -32,10 +32,10 @@ func (a *AdminUsecase) Register(input *model.NewAdmin) error {
 	}
 
 	newAdmin := entities.Admin{
-		ID: uuid.NewString(),
+		ID:       uuid.NewString(),
 		Username: input.Username,
 		Password: string(hashedPassword),
-		Nama: input.Nama,
+		Nama:     input.Nama,
 	}
 
 	if err := a.AdminRepository.Create(newAdmin); err != nil {
@@ -45,7 +45,7 @@ func (a *AdminUsecase) Register(input *model.NewAdmin) error {
 	return nil
 }
 
-func(a *AdminUsecase) Login(input *model.AdminLogin) (string, error) {
+func (a *AdminUsecase) Login(input *model.AdminLogin) (string, error) {
 	admin, err := a.AdminRepository.GetByUsername(input.Username)
 	if err != nil {
 		return "", err

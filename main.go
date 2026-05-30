@@ -15,50 +15,49 @@ import (
 	"rapsshop-project/middleware"
 
 	// admin
+	adminHandler "rapsshop-project/src/admin/handlers"
 	adminRepo "rapsshop-project/src/admin/repo"
 	adminUsecase "rapsshop-project/src/admin/service"
-	adminHandler "rapsshop-project/src/admin/handlers"
 
 	// pembelian
+	pembelianDLHandler "rapsshop-project/src/pembelian_dl/handlers"
 	pembelianDLRepo "rapsshop-project/src/pembelian_dl/repo"
 	pembelianDLUsecase "rapsshop-project/src/pembelian_dl/service"
-	pembelianDLHandler "rapsshop-project/src/pembelian_dl/handlers"
 
 	// penjualan dl
-	jualDLRepo "rapsshop-project/src/penjualan_dl/repo"
 	jualDLHandler "rapsshop-project/src/penjualan_dl/handlers"
+	jualDLRepo "rapsshop-project/src/penjualan_dl/repo"
 	jualDLUsecase "rapsshop-project/src/penjualan_dl/service"
 
 	// stock_dl
+	stockDLHandler "rapsshop-project/src/stock_dl/handlers"
 	stockDLRepo "rapsshop-project/src/stock_dl/repo"
 	stockDLUsecase "rapsshop-project/src/stock_dl/service"
-	stockDLHandler "rapsshop-project/src/stock_dl/handlers"
 
 	// harga_dl
+	hargaDLHandler "rapsshop-project/src/harga_dl/handlers"
 	hargaDLRepo "rapsshop-project/src/harga_dl/repo"
 	hargaDLUsecase "rapsshop-project/src/harga_dl/service"
-	hargaDLHandler "rapsshop-project/src/harga_dl/handlers"
 
 	// testimoni
+	testiHandler "rapsshop-project/src/testimoni/handlers"
 	testiRepo "rapsshop-project/src/testimoni/repo"
 	testiUsecase "rapsshop-project/src/testimoni/service"
-	testiHandler "rapsshop-project/src/testimoni/handlers"
 
 	// sosmed
+	sosmedHandler "rapsshop-project/src/sosmed/handlers"
 	sosmedRepo "rapsshop-project/src/sosmed/repo"
 	sosmedUsecase "rapsshop-project/src/sosmed/service"
-	sosmedHandler "rapsshop-project/src/sosmed/handlers"
 
 	// env growtopia
+	envGrowtopiaHandler "rapsshop-project/src/env_growtopia/handlers"
 	envGrowtopiaRepo "rapsshop-project/src/env_growtopia/repo"
 	envGrowtopiaUsecase "rapsshop-project/src/env_growtopia/service"
-	envGrowtopiaHandler "rapsshop-project/src/env_growtopia/handlers"
 
 	// payment method
+	pmHandler "rapsshop-project/src/metode_pembayaran/handlers"
 	pmRepo "rapsshop-project/src/metode_pembayaran/repo"
 	pmUsecase "rapsshop-project/src/metode_pembayaran/service"
-	pmHandler "rapsshop-project/src/metode_pembayaran/handlers"
-
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -76,7 +75,6 @@ func main() {
 	if db == nil {
 		log.Fatal("failed to connect database\n")
 	}
-	
 
 	// uncomment for change to release mode
 	gin.SetMode(os.Getenv("GIN_MODE"))
@@ -102,7 +100,7 @@ func main() {
 		}
 		c.Next()
 	})
-	
+
 	// health check route
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

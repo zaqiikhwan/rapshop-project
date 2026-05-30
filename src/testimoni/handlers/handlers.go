@@ -24,7 +24,6 @@ func NewTestimoniHandler(r *gin.RouterGroup, tu model.TestimoniUsecase, jwtMiddl
 	r.DELETE("/testimoni/:id", jwtMiddleware, testimoniHandler.DeleteTestimoniByID)
 }
 
-
 func (th *testimoniHandler) CreateTestimoni(c *gin.Context) {
 	testimoni := c.PostForm("testimoni")
 	username := c.PostForm("username")
@@ -88,7 +87,7 @@ func (th *testimoniHandler) UpdateTestimoniByID(c *gin.Context) {
 	title := c.PostForm("title")
 	image, _ := c.FormFile("gambar")
 
-	updateTestimoni, err := th.TestimoniUsecase.UpdateTestimoniByID(uint(idUint),image, testimoni, username, title)
+	updateTestimoni, err := th.TestimoniUsecase.UpdateTestimoniByID(uint(idUint), image, testimoni, username, title)
 	if err == gorm.ErrRecordNotFound {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "id not found", err)
 		return
@@ -112,7 +111,7 @@ func (th *testimoniHandler) DeleteTestimoniByID(c *gin.Context) {
 		return
 	}
 
-	if err := th.TestimoniUsecase.DeleteTestimoniByID(uint(idUint)); err != nil{
+	if err := th.TestimoniUsecase.DeleteTestimoniByID(uint(idUint)); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed to delete testimoni by id", err)
 		return
 	}

@@ -15,10 +15,10 @@ func NewMetodePembayaranUsecase(repoMetodePembayaran model.MetodePembayaranRepos
 
 func (mpu *metodePembayaranUsecase) CreateNewPembayaran(input *model.InputMetodePembayaran) error {
 	newPembayaran := entities.MetodePembayaran{
-		IndexPembayaran: &input.IndexPembayaran,
-		JenisPembayaran: input.JenisPembayaran,
+		IndexPembayaran:      &input.IndexPembayaran,
+		JenisPembayaran:      input.JenisPembayaran,
 		KredensialPembayaran: input.KredensialPembayaran,
-		Pemilik: input.Pemilik,
+		Pemilik:              input.Pemilik,
 	}
 
 	if err := mpu.RepoMetodePembayaran.Create(newPembayaran); err != nil {
@@ -59,11 +59,11 @@ func (mpu *metodePembayaranUsecase) GetDetailPembayaranByID(id uint) (entities.M
 }
 
 func (mpu *metodePembayaranUsecase) PatchDetailPembayaranByID(id uint, input *model.InputMetodePembayaran) error {
-	patchPayment := entities.MetodePembayaran {
-		IndexPembayaran: &input.IndexPembayaran,
-		JenisPembayaran: input.JenisPembayaran,
+	patchPayment := entities.MetodePembayaran{
+		IndexPembayaran:      &input.IndexPembayaran,
+		JenisPembayaran:      input.JenisPembayaran,
 		KredensialPembayaran: input.KredensialPembayaran,
-		Pemilik: input.Pemilik,
+		Pemilik:              input.Pemilik,
 	}
 	if err := mpu.RepoMetodePembayaran.UpdateKredensialByID(id, patchPayment); err != nil {
 		return err

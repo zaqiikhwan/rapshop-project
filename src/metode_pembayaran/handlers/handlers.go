@@ -13,6 +13,7 @@ import (
 type metodePembayaranHandler struct {
 	MetodePembayaranUsecase model.MetodePembayaranUsecase
 }
+
 func NewMetodePembayaranHandler(r *gin.RouterGroup, mpu model.MetodePembayaranUsecase, jwtMiddleware gin.HandlerFunc) {
 	handlerMetodeBayar := &metodePembayaranHandler{MetodePembayaranUsecase: mpu}
 	r.POST("/payment", jwtMiddleware, handlerMetodeBayar.CreateNewPayment)
@@ -110,7 +111,7 @@ func (mph *metodePembayaranHandler) DeletePaymentByID(c *gin.Context) {
 
 	if err := mph.MetodePembayaranUsecase.DeletePembayaranByID(uint(idUint)); err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when delete payment method", err)
-		return		
+		return
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "success delete payment method", nil)
