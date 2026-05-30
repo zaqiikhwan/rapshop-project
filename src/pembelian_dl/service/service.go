@@ -223,7 +223,8 @@ func (spdl *servicePembelianDL) UpdateStatusPengiriman(id string, input entities
 
 func (spdl *servicePembelianDL) UpdateStatusButtonBayar(id string, input entities.PembelianDL) error {
 	statusBayar := entities.PembelianDL{
-		ButtonBayar: input.ButtonBayar,
+		EditorStatus: input.EditorStatus,
+		ButtonBayar:  input.ButtonBayar,
 	}
 	if err := spdl.RepoPembelianDL.UpdateByID(statusBayar, id); err != nil {
 		return err
