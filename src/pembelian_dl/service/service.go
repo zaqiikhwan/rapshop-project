@@ -92,6 +92,14 @@ func (spdl *servicePembelianDL) GetLiveStatus(id string) (map[string]any, error)
 	return spdl.midtransCoreClient.CheckStatus(id)
 }
 
+func (spdl *servicePembelianDL) GetCheckoutPreview(jumlahDL int) (model.PembelianCheckoutPreviewResponse, error) {
+	stock, err := spdl.StockRepo.GetLatest()
+	if err != nil {
+		return model.PembelianCheckoutPreviewResponse{}, err
+	}
+	return model.NewPembelianCheckoutPreview(jumlahDL, stock)
+}
+
 func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) error {
 	if input.JumlahDL <= 0 {
 		return model.ErrInvalidJumlahDL

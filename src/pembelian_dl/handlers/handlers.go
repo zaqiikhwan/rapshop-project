@@ -31,6 +31,7 @@ func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsec
 	r.POST("/pembelian", pembelianHandler.HandlerPembelian)
 	r.POST("/new/pembelian", pembelianHandler.NewHandlerPembelian)
 	r.POST("/pembelian/status", pembelianHandler.HandlerStatus)
+	r.GET("/checkout/preview", pembelianHandler.GetCheckoutPreview)
 	r.GET("/pembelians", jwtMiddleware, pembelianHandler.GetAllDataPembelian)
 	r.GET("/pembelian/total", jwtMiddleware, pembelianHandler.GetTotalPembelian)
 	r.GET("/pembelian/:id/tracking", pembelianHandler.GetTrackingPembelian)
@@ -63,6 +64,22 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", responseBody)
+}
+
+func (ph *pembelianHandler) GetCheckoutPreview(c *gin.Context) {
+	jumlahDL, err := strconv.Atoi(c.Query("jumlah_dl"))
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed when convert jumlah_dl to int", err)
+		return
+	}
+
+	preview, err := ph.ServicePembelianDL.GetCheckoutPreview(jumlahDL)
+	if err != nil {
+		ph.respondPurchaseCreationError(c, "failed create checkout preview", err, http.StatusInternalServerError)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success create checkout preview", preview)
 }
 
 func (ph *pembelianHandler) UploadFile(c *gin.Context) {
