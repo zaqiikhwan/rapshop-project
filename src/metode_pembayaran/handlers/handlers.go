@@ -16,6 +16,7 @@ type metodePembayaranHandler struct {
 
 func NewMetodePembayaranHandler(r *gin.RouterGroup, mpu model.MetodePembayaranUsecase, jwtMiddleware gin.HandlerFunc) {
 	handlerMetodeBayar := &metodePembayaranHandler{MetodePembayaranUsecase: mpu}
+	r.GET("/checkout/options", handlerMetodeBayar.GetCheckoutOptions)
 	r.POST("/payment", jwtMiddleware, handlerMetodeBayar.CreateNewPayment)
 	r.GET("/payment/:id", jwtMiddleware, handlerMetodeBayar.GetDetailPaymentByID)
 	r.GET("/payments", jwtMiddleware, handlerMetodeBayar.GetAllPayment)
@@ -47,6 +48,16 @@ func (mph *metodePembayaranHandler) GetAllPayment(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "success fetch payment method data", allMethod)
+}
+
+func (mph *metodePembayaranHandler) GetCheckoutOptions(c *gin.Context) {
+	options, err := mph.MetodePembayaranUsecase.GetCheckoutOptions()
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when fetch checkout payment options", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success fetch checkout payment options", options)
 }
 
 func (mph *metodePembayaranHandler) GetDetailPaymentByID(c *gin.Context) {
