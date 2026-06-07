@@ -34,6 +34,56 @@ func TestIniDataPembelianGrossAmount(t *testing.T) {
 	}
 }
 
+func TestNewPembelianCheckoutPreview(t *testing.T) {
+	stock := entities.StockDL{StockDL: 500, HargaBeliDL: 100, HargaBeliBGL: 9000}
+
+	cases := []struct {
+		name        string
+		jumlahDL    int
+		wantBGL     int
+		wantDL      int
+		wantTotal   int64
+		wantAllowed bool
+		wantReason  string
+	}{
+		{"sub-100 DL", 50, 0, 50, 5000, true, ""},
+		{"exact BGL", 100, 1, 0, 9000, true, ""},
+		{"mixed BGL+DL", 250, 2, 50, 23000, true, ""},
+		{"insufficient stock", 600, 6, 0, 54000, false, ErrInsufficientStock.Error()},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := NewPembelianCheckoutPreview(tc.jumlahDL, stock)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got.Breakdown.BGLQuantity != tc.wantBGL {
+				t.Fatalf("bgl quantity got %d, want %d", got.Breakdown.BGLQuantity, tc.wantBGL)
+			}
+			if got.Breakdown.DLQuantity != tc.wantDL {
+				t.Fatalf("dl quantity got %d, want %d", got.Breakdown.DLQuantity, tc.wantDL)
+			}
+			if got.TotalPayment != tc.wantTotal {
+				t.Fatalf("total got %d, want %d", got.TotalPayment, tc.wantTotal)
+			}
+			if got.CanCheckout != tc.wantAllowed {
+				t.Fatalf("can_checkout got %t, want %t", got.CanCheckout, tc.wantAllowed)
+			}
+			if got.FailureReason != tc.wantReason {
+				t.Fatalf("failure_reason got %q, want %q", got.FailureReason, tc.wantReason)
+			}
+		})
+	}
+}
+
+func TestNewPembelianCheckoutPreviewRejectsInvalidQuantity(t *testing.T) {
+	_, err := NewPembelianCheckoutPreview(0, entities.StockDL{StockDL: 500})
+	if err != ErrInvalidJumlahDL {
+		t.Fatalf("got %v, want %v", err, ErrInvalidJumlahDL)
+	}
+}
+
 func TestPaymentStatusLabel(t *testing.T) {
 	cases := []struct {
 		name   string

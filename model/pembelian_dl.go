@@ -37,6 +37,7 @@ type PembelianDLUsecase interface {
 	GetTotal(date string) ([]RekapTotalPembelian, error)
 	GetDetailByID(id string) (entities.PembelianDL, error)
 	GetTrackingByID(id string) (PembelianTrackingResponse, error)
+	GetCheckoutPreview(jumlahDL int) (PembelianCheckoutPreviewResponse, error)
 	GetAllPembelian(_startInt int, _endInt int, queue string) ([]entities.PembelianDL, int, error)
 	CreateDataPembelian(input entities.PembelianDL) error
 	CreateDataPembelianManual(input entities.PembelianDL) error
@@ -71,6 +72,57 @@ type PembelianTrackingResponse struct {
 	Support               PembelianSupportResponse `json:"support"`
 	CreatedAt             time.Time                `json:"created_at"`
 	UpdatedAt             time.Time                `json:"updated_at"`
+}
+
+type PembelianCheckoutBreakdown struct {
+	BGLQuantity int   `json:"bgl_quantity"`
+	DLQuantity  int   `json:"dl_quantity"`
+	BGLSubtotal int64 `json:"bgl_subtotal"`
+	DLSubtotal  int64 `json:"dl_subtotal"`
+}
+
+type PembelianCheckoutPreviewResponse struct {
+	JumlahDL      int                        `json:"jumlah_dl"`
+	StockDL       int                        `json:"stock_dl"`
+	StockEnough   bool                       `json:"stock_enough"`
+	CanCheckout   bool                       `json:"can_checkout"`
+	HargaBeliDL   int                        `json:"harga_beli_dl"`
+	HargaBeliBGL  int                        `json:"harga_beli_bgl"`
+	Breakdown     PembelianCheckoutBreakdown `json:"breakdown"`
+	TotalPayment  int64                      `json:"total_payment"`
+	FailureReason string                     `json:"failure_reason,omitempty"`
+}
+
+func NewPembelianCheckoutPreview(jumlahDL int, stock entities.StockDL) (PembelianCheckoutPreviewResponse, error) {
+	if jumlahDL <= 0 {
+		return PembelianCheckoutPreviewResponse{}, ErrInvalidJumlahDL
+	}
+
+	bglQuantity := jumlahDL / 100
+	dlQuantity := jumlahDL % 100
+	bglSubtotal := int64(bglQuantity * stock.HargaBeliBGL)
+	dlSubtotal := int64(dlQuantity * stock.HargaBeliDL)
+	stockEnough := jumlahDL <= stock.StockDL
+
+	response := PembelianCheckoutPreviewResponse{
+		JumlahDL:     jumlahDL,
+		StockDL:      stock.StockDL,
+		StockEnough:  stockEnough,
+		CanCheckout:  stockEnough,
+		HargaBeliDL:  stock.HargaBeliDL,
+		HargaBeliBGL: stock.HargaBeliBGL,
+		Breakdown: PembelianCheckoutBreakdown{
+			BGLQuantity: bglQuantity,
+			DLQuantity:  dlQuantity,
+			BGLSubtotal: bglSubtotal,
+			DLSubtotal:  dlSubtotal,
+		},
+		TotalPayment: bglSubtotal + dlSubtotal,
+	}
+	if !stockEnough {
+		response.FailureReason = ErrInsufficientStock.Error()
+	}
+	return response, nil
 }
 
 func NewPembelianTrackingResponse(data entities.PembelianDL) PembelianTrackingResponse {
