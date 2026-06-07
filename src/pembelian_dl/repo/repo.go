@@ -47,7 +47,7 @@ func (rp *repoPembelianDL) Create(input entities.PembelianDL) error {
 	return nil
 }
 
-func (rp *repoPembelianDL) GetAll(_startInt int, _endInt int) ([]entities.PembelianDL, int, error) {
+func (rp *repoPembelianDL) GetAll(_startInt int, _endInt int, queue string) ([]entities.PembelianDL, int, error) {
 	var allPembelian []entities.PembelianDL
 	var total int64
 	if _startInt < 1 {
@@ -56,10 +56,29 @@ func (rp *repoPembelianDL) GetAll(_startInt int, _endInt int) ([]entities.Pembel
 	if _endInt < _startInt {
 		_endInt = _startInt
 	}
-	if err := rp.db.Order("created_at desc").Where("status_pembayaran = ? or status_pembayaran = ?", "success", "dibayar").Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPembelian).Error; err != nil {
+
+	query := rp.db.Model(&entities.PembelianDL{})
+	switch queue {
+	case "pending_payment":
+		query = query.Where("(status_pembayaran = ? OR status_pembayaran = ?) AND (bukti_pembayaran = ? OR bukti_pembayaran IS NULL)", "belum_dibayar", "pending", "")
+	case "proof_uploaded":
+		query = query.Where("status_pembayaran = ? AND bukti_pembayaran <> ?", "belum_dibayar", "")
+	case "waiting_delivery":
+		query = query.Where("(status_pembayaran = ? OR status_pembayaran = ?) AND (status_pengiriman = ? OR status_pengiriman IS NULL)", "success", "dibayar", false)
+	case "delivered":
+		query = query.Where("status_pengiriman = ?", true)
+	case "failed":
+		query = query.Where("status_pembayaran = ? OR status_pembayaran = ?", "deny", "failure")
+	case "review":
+		query = query.Where("status_pembayaran = ?", model.StatusPembayaranChallenge)
+	default:
+		query = query.Where("status_pembayaran = ? OR status_pembayaran = ?", "success", "dibayar")
+	}
+
+	if err := query.Count(&total).Error; err != nil {
 		return allPembelian, 0, err
 	}
-	if err := rp.db.Model(&entities.PembelianDL{}).Where("status_pembayaran = ? or status_pembayaran = ?", "success", "dibayar").Count(&total).Error; err != nil {
+	if err := query.Order("created_at desc").Offset(_startInt - 1).Limit(_endInt - _startInt + 1).Find(&allPembelian).Error; err != nil {
 		return allPembelian, 0, err
 	}
 	return allPembelian, int(total), nil

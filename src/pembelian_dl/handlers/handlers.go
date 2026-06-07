@@ -33,6 +33,7 @@ func NewPembelianHandler(r *gin.RouterGroup, usecaseBeliDL model.PembelianDLUsec
 	r.POST("/pembelian/status", pembelianHandler.HandlerStatus)
 	r.GET("/pembelians", jwtMiddleware, pembelianHandler.GetAllDataPembelian)
 	r.GET("/pembelian/total", jwtMiddleware, pembelianHandler.GetTotalPembelian)
+	r.GET("/pembelian/:id/tracking", pembelianHandler.GetTrackingPembelian)
 	r.GET("/pembelian/:id", pembelianHandler.GetDetailPembelian) // detail data dari database
 	r.GET("/pembelian/status/:id", pembelianHandler.GetStatus)   // detail status dari midtrans
 	r.PATCH("/pembelian/:id", jwtMiddleware, pembelianHandler.UpdateStatusPengiriman)
@@ -57,7 +58,7 @@ func (ph *pembelianHandler) HandlerPembelian(c *gin.Context) {
 
 	responseBody, err := ph.ServicePembelianDL.ChargeAndCreate(input)
 	if err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusBadGateway, "failed to create transaction", err)
+		ph.respondPurchaseCreationError(c, "failed to create transaction", err, http.StatusBadGateway)
 		return
 	}
 
@@ -110,8 +111,8 @@ func (ph *pembelianHandler) NewHandlerPembelian(c *gin.Context) {
 
 	input.ID = uuid.NewString()
 
-	if err := ph.ServicePembelianDL.CreateDataPembelian(input); err != nil {
-		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed create new data pembelian", err)
+	if err := ph.ServicePembelianDL.CreateDataPembelianManual(input); err != nil {
+		ph.respondPurchaseCreationError(c, "failed create new data pembelian", err, http.StatusInternalServerError)
 		return
 	}
 
@@ -122,6 +123,19 @@ func (ph *pembelianHandler) NewHandlerPembelian(c *gin.Context) {
 		return
 	}
 	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", map[string]any{"id_transaksi": input.ID, "payment": paymentMethod})
+}
+
+func (ph *pembelianHandler) respondPurchaseCreationError(c *gin.Context, message string, err error, fallbackStatus int) {
+	switch {
+	case errors.Is(err, model.ErrInvalidJumlahDL):
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, message, err)
+	case errors.Is(err, model.ErrInsufficientStock):
+		utils.FailureOrErrorResponse(c, http.StatusConflict, message, err)
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, message, err)
+	default:
+		utils.FailureOrErrorResponse(c, fallbackStatus, message, err)
+	}
 }
 
 func (ph *pembelianHandler) NewUpdateButton(c *gin.Context) {
@@ -208,6 +222,7 @@ func (ph *pembelianHandler) HandlerStatus(c *gin.Context) {
 func (ph *pembelianHandler) GetAllDataPembelian(c *gin.Context) {
 	_start := c.Query("_start")
 	_end := c.Query("_end")
+	queue := c.Query("queue")
 
 	_startInt, err := strconv.Atoi(_start)
 	if err != nil {
@@ -221,7 +236,7 @@ func (ph *pembelianHandler) GetAllDataPembelian(c *gin.Context) {
 		return
 	}
 
-	allData, lenData, err := ph.ServicePembelianDL.GetAllPembelian(_startInt, _endInt)
+	allData, lenData, err := ph.ServicePembelianDL.GetAllPembelian(_startInt, _endInt, queue)
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when fetch all data", err)
 		return
@@ -239,6 +254,21 @@ func (ph *pembelianHandler) GetStatus(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "transaction found", responseBody)
+}
+
+func (ph *pembelianHandler) GetTrackingPembelian(c *gin.Context) {
+	id := c.Param("id")
+	tracking, err := ph.ServicePembelianDL.GetTrackingByID(id)
+	if err == gorm.ErrRecordNotFound {
+		utils.FailureOrErrorResponse(c, http.StatusNotFound, "data pembelian not found", err)
+		return
+	}
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch tracking data pembelian", err)
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "success fetch tracking data pembelian", tracking)
 }
 
 func (ph *pembelianHandler) GetDetailPembelian(c *gin.Context) {

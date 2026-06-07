@@ -31,6 +31,10 @@ func FailureOrErrorResponse(c *gin.Context, httpCode int, msg string, err error)
 		status = "failed, status forbidden"
 	case 404:
 		status = "failed, status not found"
+	case 409:
+		status = "failed, status conflict"
+	case 502:
+		status = "error, bad gateway"
 	default:
 		status = "error, internal server error"
 	}
