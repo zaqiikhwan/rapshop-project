@@ -268,7 +268,8 @@ Response data:
   "bukti_pembayaran": "https://example.com/api/v1/public/file.jpg",
   "support": {
     "channel": "whatsapp",
-    "message": "Halo admin, saya ingin bertanya tentang order <id>"
+    "message": "Halo admin, saya ingin bertanya tentang order <id>",
+    "link": "https://wa.me/6281234567890?text=Halo+admin%2C+saya+ingin+bertanya+tentang+order+<id>"
   },
   "created_at": "2026-06-07T00:00:00+07:00",
   "updated_at": "2026-06-07T00:00:00+07:00"

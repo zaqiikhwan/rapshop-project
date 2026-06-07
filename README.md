@@ -97,6 +97,7 @@ cp .env.example .env
 | `MIDTRANS` | ✅ | Midtrans charge endpoint URL (e.g. `https://api.midtrans.com/v2/charge`) |
 | `MIDTRANS_STATUS_URL` | optional | Midtrans status base URL; defaults to `https://api.midtrans.com/v2` |
 | `HOST_URL` | ✅ | Public base URL of this server, used to build links to uploaded proof images |
+| `SUPPORT_WHATSAPP_NUMBER` | optional | WhatsApp number used to build customer support links in order tracking |
 | `GIN_MODE` | optional | `debug` (default) or `release` |
 | `AUTO_MIGRATE` | optional | Set to `false` in production; defaults to enabled for local development |
 
