@@ -83,7 +83,7 @@ A single **admin** role manages inventory, pricing, payment methods, the in-game
 ### 4.4 Customer Purchase (Pembelian)
 - **FR-11** A customer can create a purchase order specifying world, GrowID, item type, quantity, WhatsApp, and payment method.
 - **FR-12** For gateway payments, the system creates a Midtrans charge (QRIS, GoPay, ShopeePay, or bank transfer for BCA/BRI/BNI) and returns the payment instructions.
-- **FR-13** For manual payment, the system returns the configured payment-method credentials and the customer uploads proof of payment.
+- **FR-13** For manual payment, the system returns a sanitized payment instruction response and proof-upload/tracking paths. Stored payment credentials are admin-only and are not exposed by public checkout responses.
 - **FR-14** The system records `jumlah_transaksi` (total price) computed from current prices and quantity.
 - **FR-15** Midtrans sends a status notification (webhook); the system updates payment status and decrements stock on success.
 - **FR-16** A customer/admin can query a purchase's DB record and its live Midtrans status.
@@ -152,13 +152,13 @@ Base path: `/api/v1`. 🔓 = public, 🔒 = requires JWT.
 - `POST /testimoni` 🔒 (multipart) · `GET /testimonis` 🔓 · `GET /testimoni/:id` 🔒 · `PATCH /testimoni/:id` 🔒 · `DELETE /testimoni/:id` 🔒
 
 ### Payment methods
-- `POST /payment` 🔒 · `GET /payments` 🔓 *(exposes credentials)* · `GET /payment/:id` 🔓 *(exposes credentials)* · `PATCH /payment/:id` 🔒 · `DELETE /payment/:id` 🔒
+- `POST /payment` 🔒 · `GET /payments` 🔒 *(admin only; exposes credentials)* · `GET /payment/:id` 🔒 *(admin only; exposes credentials)* · `GET /checkout/options` 🔓 *(public sanitized options)* · `PATCH /payment/:id` 🔒 · `DELETE /payment/:id` 🔒
 
 ### Sales (Penjualan)
 - `POST /penjualan` 🔓 (multipart) · `GET /penjualans` 🔒 · `GET /penjualan/:id` 🔒 · `GET /rekapitulasi` 🔒 · `GET /profit` 🔒 · `GET /penjualan/total` 🔒 · `PATCH /penjualan/:id` 🔒 · `DELETE /penjualan/:id` 🔒
 
 ### Purchases (Pembelian)
-- `POST /pembelian` 🔓 (Midtrans charge) · `POST /new/pembelian` 🔓 (manual) · `POST /pembelian/status` 🔓 (Midtrans webhook) · `GET /pembelians` 🔒 · `GET /pembelian/total` 🔒 · `GET /pembelian/:id` 🔓 · `GET /pembelian/status/:id` 🔓 · `PATCH /pembelian/:id` 🔒 · `PATCH /pembelian/button/:id` 🔓 · `PATCH /pembelian/confirm/:id` 🔒 · `PATCH /upload/:id` 🔓 (proof upload) · `GET /public/*` 🔓 (static files)
+- `GET /checkout/preview` 🔓 · `POST /pembelian` 🔓 (Midtrans charge) · `POST /new/pembelian` 🔓 (manual) · `POST /pembelian/status` 🔓 (Midtrans webhook) · `GET /pembelians` 🔒 (supports `queue`) · `GET /pembelian/total` 🔒 · `GET /pembelian/:id` 🔓 · `GET /pembelian/:id/tracking` 🔓 · `GET /pembelian/status/:id` 🔓 · `PATCH /pembelian/:id` 🔒 · `PATCH /pembelian/button/:id` 🔓 · `PATCH /pembelian/confirm/:id` 🔒 · `PATCH /upload/:id` 🔓 (proof upload) · `GET /public/*` 🔓 (static files)
 
 ---
 
@@ -177,7 +177,7 @@ Base path: `/api/v1`. 🔓 = public, 🔒 = requires JWT.
 
 **Purchase (gateway):** create order → Midtrans charge → customer pays → Midtrans webhook (`/pembelian/status`) → status set to `success`/`pending`/`deny`/`failure`/`challange` → on success, stock decremented → admin marks `status_pengiriman` after in-game delivery.
 
-**Purchase (manual):** create order (`/new/pembelian`) → return payment-method credentials → customer uploads proof (`/upload/:id`) → admin confirms (`/pembelian/confirm/:id`).
+**Purchase (manual):** create order (`/new/pembelian`) → return sanitized payment instruction, proof-upload path, and tracking path → customer uploads proof (`/upload/:id`) → admin confirms (`/pembelian/confirm/:id`).
 
 **Sale:** customer submits with proof image → admin reviews → status approved (`status = 1`) → stock incremented and recorded with editor.
 
