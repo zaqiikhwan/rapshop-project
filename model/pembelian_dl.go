@@ -93,6 +93,22 @@ type PembelianCheckoutPreviewResponse struct {
 	FailureReason string                     `json:"failure_reason,omitempty"`
 }
 
+type PembelianManualCreateResponse struct {
+	IDTransaksi     string                           `json:"id_transaksi"`
+	Payment         ManualPaymentInstructionResponse `json:"payment"`
+	UploadProofPath string                           `json:"upload_proof_path"`
+	TrackingPath    string                           `json:"tracking_path"`
+}
+
+func NewPembelianManualCreateResponse(id string, payment ManualPaymentInstructionResponse) PembelianManualCreateResponse {
+	return PembelianManualCreateResponse{
+		IDTransaksi:     id,
+		Payment:         payment,
+		UploadProofPath: "/api/v1/upload/" + id,
+		TrackingPath:    "/api/v1/pembelian/" + id + "/tracking",
+	}
+}
+
 func NewPembelianCheckoutPreview(jumlahDL int, stock entities.StockDL) (PembelianCheckoutPreviewResponse, error) {
 	if jumlahDL <= 0 {
 		return PembelianCheckoutPreviewResponse{}, ErrInvalidJumlahDL
