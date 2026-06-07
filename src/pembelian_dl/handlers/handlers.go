@@ -5,14 +5,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 	"rapsshop-project/utils"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -91,10 +90,25 @@ func (ph *pembelianHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	allowed := map[string]bool{".png": true, ".jpg": true, ".jpeg": true, ".heic": true, ".heif": true}
-	if !allowed[ext] {
-		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "format picture not allowed", errors.New("invalid file extension"))
+	openedFile, err := file.Open()
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed open uploaded file", err)
+		return
+	}
+	defer func() {
+		_ = openedFile.Close()
+	}()
+
+	sniff := make([]byte, 512)
+	n, err := openedFile.Read(sniff)
+	if err != nil && !errors.Is(err, io.EOF) {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed read uploaded file", err)
+		return
+	}
+
+	ext, err := model.ValidatePaymentProofUpload(file.Filename, file.Size, sniff[:n])
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "format picture not allowed", err)
 		return
 	}
 
