@@ -4,7 +4,7 @@ Backend API for **RapsShop**, an online shop that trades Growtopia **Diamond Loc
 
 Built with **Go + Gin + GORM (MySQL)**, JWT auth, Midtrans payments, and Supabase Storage for images.
 
-> See [`PRD.md`](./PRD.md) for the product spec and [`SUGGESTIONS.md`](./SUGGESTIONS.md) for the prioritized improvement backlog (includes known security issues — read before deploying).
+> See [`PRD.md`](./PRD.md) for the product spec, [`SUGGESTIONS.md`](./SUGGESTIONS.md) for the engineering backlog, and [`PRODUCTION_IMPROVEMENTS.md`](./PRODUCTION_IMPROVEMENTS.md) for VPS deployment and transaction reliability hardening.
 
 ---
 
@@ -94,11 +94,13 @@ cp .env.example .env
 | `STORAGE_NAME` | ✅ | Supabase bucket name |
 | `BASE_URL` | ✅ | Public base URL prefix for Supabase-hosted images |
 | `AUTHORIZATION_VALUE` | ✅ | Midtrans server key (used as Basic auth, base64-encoded at runtime) |
-| `MIDTRANS` | ✅ | Midtrans charge endpoint URL (e.g. `https://api.midtrans.com/v2/charge`) — **not in `.env.example`, add it** |
-| `HOST_URL` | ✅ | Public base URL of this server, used to build links to uploaded proof images — **not in `.env.example`, add it** |
+| `MIDTRANS` | ✅ | Midtrans charge endpoint URL (e.g. `https://api.midtrans.com/v2/charge`) |
+| `MIDTRANS_STATUS_URL` | optional | Midtrans status base URL; defaults to `https://api.midtrans.com/v2` |
+| `HOST_URL` | ✅ | Public base URL of this server, used to build links to uploaded proof images |
 | `GIN_MODE` | optional | `debug` (default) or `release` |
+| `AUTO_MIGRATE` | optional | Set to `false` in production; defaults to enabled for local development |
 
-> ⚠️ `MIDTRANS` and `HOST_URL` are read by the code but missing from `.env.example`. Add them or purchase/upload flows will break. `.env` is gitignored — never commit real secrets.
+> `.env` is gitignored — never commit real secrets.
 
 ### 3. Run
 ```bash
@@ -247,8 +249,11 @@ curl http://localhost:8080/api/v1/profile \
 CI/CD via `.github/workflows/deploy.yml`:
 1. Triggered on push to `main` **only when the commit message contains `DEPLOY`** (or via manual `workflow_dispatch`).
 2. Builds the Go binary (`go build -o main`).
-3. Rsyncs the binary to the server.
-4. Restarts the process with `pm2 restart nur-fattah --update-env`.
+3. Rsyncs the binary and `ecosystem.config.cjs` to the server.
+4. Restarts or starts the process with `pm2 startOrReload ecosystem.config.cjs --update-env`.
+5. Saves the PM2 process list with `pm2 save`.
+
+For manual/cloud VPS deployment and automatic restart setup, follow [`PRODUCTION_IMPROVEMENTS.md`](./PRODUCTION_IMPROVEMENTS.md).
 
 Required GitHub secrets: `SSH_HOST`, `SSH_USERNAME`, `SSH_KEY`.
 
