@@ -90,6 +90,15 @@ func (ph *pembelianHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
+	if _, err := ph.ServicePembelianDL.GetDetailByID(id); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			utils.FailureOrErrorResponse(c, http.StatusNotFound, "data pembelian not found", err)
+			return
+		}
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch data pembelian", err)
+		return
+	}
+
 	openedFile, err := file.Open()
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed open uploaded file", err)
