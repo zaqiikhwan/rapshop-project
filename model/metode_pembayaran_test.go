@@ -64,3 +64,42 @@ func TestNewCheckoutPaymentOptionsSkipsManualMethodsWithoutIndex(t *testing.T) {
 		t.Fatal("gateway enabled got true, want false")
 	}
 }
+
+func TestNewPembelianManualCreateResponseDoesNotExposePaymentCredentials(t *testing.T) {
+	index := 7
+	payment := NewManualPaymentInstruction(entities.MetodePembayaran{
+		IndexPembayaran:      &index,
+		JenisPembayaran:      "BCA Manual",
+		KredensialPembayaran: "secret-account-number",
+		Pemilik:              "RapsShop",
+	})
+	response := NewPembelianManualCreateResponse("order-123", payment)
+
+	if response.IDTransaksi != "order-123" {
+		t.Fatalf("id_transaksi got %q, want order-123", response.IDTransaksi)
+	}
+	if response.Payment.IndexPembayaran != index {
+		t.Fatalf("payment index got %d, want %d", response.Payment.IndexPembayaran, index)
+	}
+	if response.Payment.JenisPembayaran != "BCA Manual" {
+		t.Fatalf("payment jenis got %q, want BCA Manual", response.Payment.JenisPembayaran)
+	}
+	if response.UploadProofPath != "/api/v1/upload/order-123" {
+		t.Fatalf("upload proof path got %q", response.UploadProofPath)
+	}
+	if response.TrackingPath != "/api/v1/pembelian/order-123/tracking" {
+		t.Fatalf("tracking path got %q", response.TrackingPath)
+	}
+
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatalf("failed marshal manual create response: %v", err)
+	}
+	body := string(encoded)
+	if strings.Contains(body, "kredensial_pembayaran") {
+		t.Fatal("manual create response exposed credential field")
+	}
+	if strings.Contains(body, "secret-account-number") {
+		t.Fatal("manual create response exposed credential value")
+	}
+}

@@ -25,6 +25,15 @@ type CheckoutPaymentOptionsResponse struct {
 	Manual  []CheckoutPaymentOptionResponse `json:"manual"`
 }
 
+type ManualPaymentInstructionResponse struct {
+	IndexPembayaran      int    `json:"index_pembayaran"`
+	JenisPembayaran      string `json:"jenis_pembayaran"`
+	CheckoutType         string `json:"checkout_type"`
+	Provider             string `json:"provider"`
+	Pemilik              string `json:"pemilik,omitempty"`
+	RequiresPaymentProof bool   `json:"requires_payment_proof"`
+}
+
 type MetodePembayaranRepository interface {
 	Create(newMetode entities.MetodePembayaran) error
 	GetAll() ([]entities.MetodePembayaran, error)
@@ -73,4 +82,20 @@ func NewCheckoutPaymentOptions(manualMethods []entities.MetodePembayaran, gatewa
 	}
 
 	return options
+}
+
+func NewManualPaymentInstruction(method entities.MetodePembayaran) ManualPaymentInstructionResponse {
+	index := 0
+	if method.IndexPembayaran != nil {
+		index = *method.IndexPembayaran
+	}
+
+	return ManualPaymentInstructionResponse{
+		IndexPembayaran:      index,
+		JenisPembayaran:      method.JenisPembayaran,
+		CheckoutType:         "manual",
+		Provider:             "manual_transfer",
+		Pemilik:              method.Pemilik,
+		RequiresPaymentProof: true,
+	}
 }

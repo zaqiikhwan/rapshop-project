@@ -139,7 +139,15 @@ func (ph *pembelianHandler) NewHandlerPembelian(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusNotFound, "payment method not found", err)
 		return
 	}
-	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", map[string]any{"id_transaksi": input.ID, "payment": paymentMethod})
+	if err != nil {
+		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed fetch payment method", err)
+		return
+	}
+
+	paymentInstruction := model.NewManualPaymentInstruction(paymentMethod)
+	response := model.NewPembelianManualCreateResponse(input.ID, paymentInstruction)
+
+	utils.SuccessResponse(c, http.StatusCreated, "transaction successfully created", response)
 }
 
 func (ph *pembelianHandler) respondPurchaseCreationError(c *gin.Context, message string, err error, fallbackStatus int) {
