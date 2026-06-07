@@ -276,6 +276,10 @@ func (ph *pembelianHandler) GetAllDataPembelian(c *gin.Context) {
 	}
 
 	allData, lenData, err := ph.ServicePembelianDL.GetAllPembelian(_startInt, _endInt, queue)
+	if errors.Is(err, model.ErrInvalidPembelianQueue) {
+		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "invalid pembelian queue", err)
+		return
+	}
 	if err != nil {
 		utils.FailureOrErrorResponse(c, http.StatusInternalServerError, "failed when fetch all data", err)
 		return

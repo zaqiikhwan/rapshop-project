@@ -161,6 +161,10 @@ func (spdl *servicePembelianDL) CreateDataPembelianManual(input entities.Pembeli
 }
 
 func (spdl *servicePembelianDL) GetAllPembelian(_startInt int, _endInt int, queue string) ([]entities.PembelianDL, int, error) {
+	if !model.IsValidPembelianQueue(queue) {
+		return nil, 0, model.ErrInvalidPembelianQueue
+	}
+
 	allData, lenData, err := spdl.RepoPembelianDL.GetAll(_startInt, _endInt, queue)
 	if err != nil {
 		return allData, lenData, err
