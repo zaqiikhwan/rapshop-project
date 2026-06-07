@@ -1,6 +1,7 @@
 package service
 
 import (
+	"os"
 	"rapsshop-project/entities"
 	"rapsshop-project/model"
 )
@@ -36,6 +37,16 @@ func (mpu *metodePembayaranUsecase) GetAllPembayaran() ([]entities.MetodePembaya
 	}
 
 	return allPembayaran, nil
+}
+
+func (mpu *metodePembayaranUsecase) GetCheckoutOptions() (model.CheckoutPaymentOptionsResponse, error) {
+	manualMethods, err := mpu.RepoMetodePembayaran.GetAll()
+	if err != nil {
+		return model.CheckoutPaymentOptionsResponse{}, err
+	}
+
+	gatewayEnabled := os.Getenv("AUTHORIZATION_VALUE") != "" && os.Getenv("MIDTRANS") != ""
+	return model.NewCheckoutPaymentOptions(manualMethods, gatewayEnabled), nil
 }
 
 func (mpu *metodePembayaranUsecase) GetDetailPembayaranByIndex(index int) (entities.MetodePembayaran, error) {
