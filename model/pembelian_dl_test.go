@@ -84,6 +84,28 @@ func TestNewPembelianCheckoutPreviewRejectsInvalidQuantity(t *testing.T) {
 	}
 }
 
+func TestIsValidPembelianQueue(t *testing.T) {
+	validQueues := []string{
+		"",
+		"pending_payment",
+		"proof_uploaded",
+		"waiting_delivery",
+		"delivered",
+		"failed",
+		"review",
+	}
+
+	for _, queue := range validQueues {
+		if !IsValidPembelianQueue(queue) {
+			t.Fatalf("queue %q got invalid, want valid", queue)
+		}
+	}
+
+	if IsValidPembelianQueue("paid") {
+		t.Fatal("queue paid got valid, want invalid")
+	}
+}
+
 func TestPaymentStatusLabel(t *testing.T) {
 	cases := []struct {
 		name   string

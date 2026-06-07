@@ -13,11 +13,26 @@ import (
 )
 
 var (
-	ErrInvalidJumlahDL   = errors.New("jumlah_dl must be greater than 0")
-	ErrInsufficientStock = errors.New("insufficient stock")
+	ErrInvalidJumlahDL       = errors.New("jumlah_dl must be greater than 0")
+	ErrInsufficientStock     = errors.New("insufficient stock")
+	ErrInvalidPembelianQueue = errors.New("invalid pembelian queue")
 )
 
 const StatusPembayaranChallenge = "challange" //nolint:misspell // legacy persisted status value; do not change without migration.
+
+var validPembelianQueues = map[string]bool{
+	"":                 true,
+	"pending_payment":  true,
+	"proof_uploaded":   true,
+	"waiting_delivery": true,
+	"delivered":        true,
+	"failed":           true,
+	"review":           true,
+}
+
+func IsValidPembelianQueue(queue string) bool {
+	return validPembelianQueues[queue]
+}
 
 type RekapTotalPembelian struct {
 	Tanggal  string `json:"tanggal"`
