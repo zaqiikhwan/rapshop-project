@@ -14,6 +14,8 @@ var (
 	ErrInsufficientStock = errors.New("insufficient stock")
 )
 
+const StatusPembayaranChallenge = "challange" //nolint:misspell // legacy persisted status value; do not change without migration.
+
 type RekapTotalPembelian struct {
 	Tanggal  string `json:"tanggal"`
 	JumlahDL int    `json:"jumlah_dl"`
@@ -122,7 +124,7 @@ func PaymentStatusLabel(status string, buktiPembayaran string) string {
 		return "Payment denied"
 	case "failure":
 		return "Payment failed"
-	case "challange":
+	case StatusPembayaranChallenge:
 		return "Under review"
 	default:
 		return "Waiting for payment"

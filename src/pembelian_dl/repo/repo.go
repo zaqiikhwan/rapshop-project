@@ -70,7 +70,7 @@ func (rp *repoPembelianDL) GetAll(_startInt int, _endInt int, queue string) ([]e
 	case "failed":
 		query = query.Where("status_pembayaran = ? OR status_pembayaran = ?", "deny", "failure")
 	case "review":
-		query = query.Where("status_pembayaran = ?", "challange")
+		query = query.Where("status_pembayaran = ?", model.StatusPembayaranChallenge)
 	default:
 		query = query.Where("status_pembayaran = ? OR status_pembayaran = ?", "success", "dibayar")
 	}

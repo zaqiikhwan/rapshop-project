@@ -178,7 +178,7 @@ func (spdl *servicePembelianDL) UpdateStatusPembayaran(id string) error {
 	switch midtransReport.TransactionStatus {
 	case "capture":
 		if midtransReport.FraudStatus == "challenge" {
-			newStatus = "challange" //nolint:misspell // intentional stored status value (matches DB rows + frontend)
+			newStatus = model.StatusPembayaranChallenge
 		} else if midtransReport.FraudStatus == "accept" {
 			newStatus = "success"
 		}

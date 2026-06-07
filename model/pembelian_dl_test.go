@@ -48,7 +48,7 @@ func TestPaymentStatusLabel(t *testing.T) {
 		{"manual approved", "dibayar", "https://example.com/proof.jpg", "Payment confirmed"},
 		{"gateway denied", "deny", "", "Payment denied"},
 		{"gateway failed", "failure", "", "Payment failed"},
-		{"gateway review", "challange", "", "Under review"},
+		{"gateway review", StatusPembayaranChallenge, "", "Under review"},
 		{"unknown", "unexpected", "", "Waiting for payment"},
 	}
 
