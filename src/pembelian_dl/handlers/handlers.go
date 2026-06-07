@@ -95,7 +95,9 @@ func (ph *pembelianHandler) UploadFile(c *gin.Context) {
 		utils.FailureOrErrorResponse(c, http.StatusBadRequest, "failed open uploaded file", err)
 		return
 	}
-	defer openedFile.Close()
+	defer func() {
+		_ = openedFile.Close()
+	}()
 
 	sniff := make([]byte, 512)
 	n, err := openedFile.Read(sniff)
