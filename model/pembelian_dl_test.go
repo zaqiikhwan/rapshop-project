@@ -113,6 +113,8 @@ func TestPaymentStatusLabel(t *testing.T) {
 }
 
 func TestNewPembelianTrackingResponse(t *testing.T) {
+	t.Setenv("SUPPORT_WHATSAPP_NUMBER", "+62 812-3456-7890")
+
 	shipped := true
 	response := NewPembelianTrackingResponse(entities.PembelianDL{
 		ID:               "order-1",
@@ -142,5 +144,21 @@ func TestNewPembelianTrackingResponse(t *testing.T) {
 	}
 	if response.Support.Channel != "whatsapp" {
 		t.Fatalf("support.channel got %q, want whatsapp", response.Support.Channel)
+	}
+	if response.Support.Message != "Halo admin, saya ingin bertanya tentang order order-1" {
+		t.Fatalf("support.message got %q", response.Support.Message)
+	}
+	if response.Support.Link != "https://wa.me/6281234567890?text=Halo+admin%2C+saya+ingin+bertanya+tentang+order+order-1" {
+		t.Fatalf("support.link got %q", response.Support.Link)
+	}
+}
+
+func TestNewPembelianSupportResponseOmitsLinkWithoutConfiguredNumber(t *testing.T) {
+	t.Setenv("SUPPORT_WHATSAPP_NUMBER", "")
+
+	response := NewPembelianSupportResponse("order-1")
+
+	if response.Link != "" {
+		t.Fatalf("support.link got %q, want empty", response.Link)
 	}
 }

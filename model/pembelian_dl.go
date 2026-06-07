@@ -2,7 +2,10 @@ package model
 
 import (
 	"errors"
+	"net/url"
+	"os"
 	"rapsshop-project/entities"
+	"strings"
 	"time"
 
 	"github.com/midtrans/midtrans-go"
@@ -53,6 +56,7 @@ type PembelianDLUsecase interface {
 type PembelianSupportResponse struct {
 	Channel string `json:"channel"`
 	Message string `json:"message"`
+	Link    string `json:"link,omitempty"`
 }
 
 type PembelianTrackingResponse struct {
@@ -166,13 +170,34 @@ func NewPembelianTrackingResponse(data entities.PembelianDL) PembelianTrackingRe
 		StatusPengiriman:      statusPengiriman,
 		StatusPengirimanLabel: DeliveryStatusLabel(statusPengiriman),
 		BuktiPembayaran:       data.BuktiPembayaran,
-		Support: PembelianSupportResponse{
-			Channel: "whatsapp",
-			Message: "Halo admin, saya ingin bertanya tentang order " + data.ID,
-		},
-		CreatedAt: data.CreatedAt,
-		UpdatedAt: data.UpdatedAt,
+		Support:               NewPembelianSupportResponse(data.ID),
+		CreatedAt:             data.CreatedAt,
+		UpdatedAt:             data.UpdatedAt,
 	}
+}
+
+func NewPembelianSupportResponse(orderID string) PembelianSupportResponse {
+	message := "Halo admin, saya ingin bertanya tentang order " + orderID
+	response := PembelianSupportResponse{
+		Channel: "whatsapp",
+		Message: message,
+	}
+
+	number := whatsappNumberDigits(os.Getenv("SUPPORT_WHATSAPP_NUMBER"))
+	if number != "" {
+		response.Link = "https://wa.me/" + number + "?text=" + url.QueryEscape(message)
+	}
+
+	return response
+}
+
+func whatsappNumberDigits(number string) string {
+	return strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, number)
 }
 
 func PaymentStatusLabel(status string, buktiPembayaran string) string {
