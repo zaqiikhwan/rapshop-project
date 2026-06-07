@@ -188,6 +188,7 @@ Base path: **`/api/v1`**. Protected routes require a header `Authorization: Bear
 | POST | `/payment` | 🔒 | |
 | GET | `/payments` | 🔒 | now protected (exposes payment credentials) |
 | GET | `/payment/:id` | 🔒 | now protected (exposes payment credentials) |
+| GET | `/checkout/options` | 🔓 | public checkout payment options; excludes stored credentials |
 | PATCH | `/payment/:id` | 🔒 | |
 | DELETE | `/payment/:id` | 🔒 | |
 
@@ -206,12 +207,14 @@ Base path: **`/api/v1`**. Protected routes require a header `Authorization: Bear
 ### Purchases — customer buys from shop (Pembelian)
 | Method | Path | Auth | Notes |
 |---|---|---|---|
+| GET | `/checkout/preview?jumlah_dl=` | 🔓 | stock availability, price breakdown, and checkout eligibility |
 | POST | `/pembelian` | 🔓 | create order + Midtrans charge |
 | POST | `/new/pembelian` | 🔓 | create order (manual payment) |
 | POST | `/pembelian/status` | 🔓 | Midtrans webhook (order status notification) |
-| GET | `/pembelians?_start=&_end=` | 🔒 | paginated list |
+| GET | `/pembelians?_start=&_end=&queue=` | 🔒 | paginated list; optional queue filter |
 | GET | `/pembelian/total?_date=` | 🔒 | per-day purchase totals |
 | GET | `/pembelian/:id` | 🔓 | DB record |
+| GET | `/pembelian/:id/tracking` | 🔓 | customer-facing tracking response |
 | GET | `/pembelian/status/:id` | 🔓 | live Midtrans status |
 | PATCH | `/pembelian/:id` | 🔒 | update delivery status |
 | PATCH | `/pembelian/button/:id` | 🔓 | toggle "pay" button state |
@@ -241,6 +244,135 @@ curl -X POST http://localhost:8080/api/v1/admin/login \
 curl http://localhost:8080/api/v1/profile \
   -H "Authorization: Bearer <token>"
 ```
+
+### Example: checkout preview
+```bash
+curl "http://localhost:8080/api/v1/checkout/preview?jumlah_dl=150"
+```
+```json
+{
+  "status_code": 200,
+  "status": "success, request OK!",
+  "message": "success create checkout preview",
+  "data": {
+    "jumlah_dl": 150,
+    "stock_dl": 1000,
+    "stock_enough": true,
+    "can_checkout": true,
+    "harga_beli_dl": 100,
+    "harga_beli_bgl": 9500,
+    "breakdown": {
+      "bgl_quantity": 1,
+      "dl_quantity": 50,
+      "bgl_subtotal": 9500,
+      "dl_subtotal": 5000
+    },
+    "total_payment": 14500
+  }
+}
+```
+
+### Example: checkout options
+```bash
+curl http://localhost:8080/api/v1/checkout/options
+```
+```json
+{
+  "status_code": 200,
+  "status": "success, request OK!",
+  "message": "success fetch checkout payment options",
+  "data": {
+    "gateway": [
+      {
+        "index_pembayaran": 1,
+        "jenis_pembayaran": "QRIS",
+        "checkout_type": "gateway",
+        "provider": "midtrans",
+        "requires_payment_proof": false,
+        "enabled": true
+      }
+    ],
+    "manual": [
+      {
+        "index_pembayaran": 7,
+        "jenis_pembayaran": "BCA Manual",
+        "checkout_type": "manual",
+        "provider": "manual_transfer",
+        "pemilik": "RapsShop",
+        "requires_payment_proof": true,
+        "enabled": true
+      }
+    ]
+  }
+}
+```
+
+### Example: gateway purchase
+```bash
+curl -X POST http://localhost:8080/api/v1/pembelian \
+  -H "Content-Type: application/json" \
+  -d '{
+    "world": "BUYDL",
+    "nama": "Customer",
+    "grow_id": "GrowID",
+    "jumlah_dl": 150,
+    "wa": "628123456789",
+    "metode_transfer": 1
+  }'
+```
+
+### Example: manual purchase
+```bash
+curl -X POST http://localhost:8080/api/v1/new/pembelian \
+  -H "Content-Type: application/json" \
+  -d '{
+    "world": "BUYDL",
+    "nama": "Customer",
+    "grow_id": "GrowID",
+    "jumlah_dl": 150,
+    "wa": "628123456789",
+    "metode_transfer": 7
+  }'
+```
+```json
+{
+  "status_code": 201,
+  "status": "success, request OK!",
+  "message": "transaction successfully created",
+  "data": {
+    "id_transaksi": "order-uuid",
+    "payment": {
+      "index_pembayaran": 7,
+      "jenis_pembayaran": "BCA Manual",
+      "checkout_type": "manual",
+      "provider": "manual_transfer",
+      "pemilik": "RapsShop",
+      "requires_payment_proof": true
+    },
+    "upload_proof_path": "/api/v1/upload/order-uuid",
+    "tracking_path": "/api/v1/pembelian/order-uuid/tracking"
+  }
+}
+```
+
+### Example: upload proof and track order
+```bash
+curl -X PATCH http://localhost:8080/api/v1/upload/order-uuid \
+  -F "file=@payment-proof.jpg"
+
+curl http://localhost:8080/api/v1/pembelian/order-uuid/tracking
+```
+
+Supported admin purchase queues:
+
+| Queue | Meaning |
+|---|---|
+| `pending_payment` | Waiting for gateway payment or manual proof upload |
+| `proof_uploaded` | Manual proof uploaded and waiting for admin confirmation |
+| `waiting_delivery` | Paid and waiting for in-game delivery |
+| `delivered` | Delivered orders |
+| `failed` | Denied or failed payments |
+| `review` | Gateway challenge/review status |
 
 ---
 
