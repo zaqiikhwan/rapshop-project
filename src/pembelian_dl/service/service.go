@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"rapsshop-project/entities"
 	"rapsshop-project/lib"
@@ -51,10 +50,13 @@ func resolvePaymentType(metode int) (paymentType string, bank string) {
 // persists the order on success. All Midtrans/HTTP concerns live in lib.
 func (spdl *servicePembelianDL) ChargeAndCreate(input entities.PembelianDL) (map[string]any, error) {
 	if input.JumlahDL <= 0 {
-		return nil, errors.New("jumlah_dl must be greater than 0")
+		return nil, model.ErrInvalidJumlahDL
 	}
 	harga, err := spdl.StockRepo.GetLatest()
 	if err != nil {
+		return nil, err
+	}
+	if err := validateStockAvailable(input.JumlahDL, harga.StockDL); err != nil {
 		return nil, err
 	}
 
@@ -79,13 +81,20 @@ func (spdl *servicePembelianDL) ChargeAndCreate(input entities.PembelianDL) (map
 	return resp, nil
 }
 
+func validateStockAvailable(requestedDL int, stockDL int) error {
+	if requestedDL > stockDL {
+		return model.ErrInsufficientStock
+	}
+	return nil
+}
+
 func (spdl *servicePembelianDL) GetLiveStatus(id string) (map[string]any, error) {
 	return spdl.midtransCoreClient.CheckStatus(id)
 }
 
 func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) error {
 	if input.JumlahDL <= 0 {
-		return errors.New("jumlah_dl must be greater than 0")
+		return model.ErrInvalidJumlahDL
 	}
 	location := time.FixedZone("UTC+7", 7*60*60)
 	GMT_7 := time.Now().In(location)
@@ -111,11 +120,14 @@ func (spdl *servicePembelianDL) CreateDataPembelian(input entities.PembelianDL) 
 
 func (spdl *servicePembelianDL) CreateDataPembelianManual(input entities.PembelianDL) error {
 	if input.JumlahDL <= 0 {
-		return errors.New("jumlah_dl must be greater than 0")
+		return model.ErrInvalidJumlahDL
 	}
 
 	hargaBeli, err := spdl.StockRepo.GetLatest()
 	if err != nil {
+		return err
+	}
+	if err := validateStockAvailable(input.JumlahDL, hargaBeli.StockDL); err != nil {
 		return err
 	}
 
@@ -140,8 +152,8 @@ func (spdl *servicePembelianDL) CreateDataPembelianManual(input entities.Pembeli
 	return spdl.RepoPembelianDL.Create(newPembelian)
 }
 
-func (spdl *servicePembelianDL) GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error) {
-	allData, lenData, err := spdl.RepoPembelianDL.GetAll(_startInt, _endInt)
+func (spdl *servicePembelianDL) GetAllPembelian(_startInt int, _endInt int, queue string) ([]entities.PembelianDL, int, error) {
+	allData, lenData, err := spdl.RepoPembelianDL.GetAll(_startInt, _endInt, queue)
 	if err != nil {
 		return allData, lenData, err
 	}
@@ -260,6 +272,14 @@ func (spdl *servicePembelianDL) GetDetailByID(id string) (entities.PembelianDL, 
 		return dataPenjualan, err
 	}
 	return dataPenjualan, nil
+}
+
+func (spdl *servicePembelianDL) GetTrackingByID(id string) (model.PembelianTrackingResponse, error) {
+	dataPembelian, err := spdl.RepoPembelianDL.GetByID(id)
+	if err != nil {
+		return model.PembelianTrackingResponse{}, err
+	}
+	return model.NewPembelianTrackingResponse(dataPembelian), nil
 }
 
 func (spdl *servicePembelianDL) GetTotal(date string) ([]model.RekapTotalPembelian, error) {

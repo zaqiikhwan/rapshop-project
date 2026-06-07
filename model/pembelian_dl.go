@@ -1,10 +1,17 @@
 package model
 
 import (
+	"errors"
 	"rapsshop-project/entities"
+	"time"
 
 	"github.com/midtrans/midtrans-go"
 	"gorm.io/gorm"
+)
+
+var (
+	ErrInvalidJumlahDL   = errors.New("jumlah_dl must be greater than 0")
+	ErrInsufficientStock = errors.New("insufficient stock")
 )
 
 type RekapTotalPembelian struct {
@@ -14,7 +21,7 @@ type RekapTotalPembelian struct {
 
 type PembelianDLRepository interface {
 	Create(input entities.PembelianDL) error
-	GetAll(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
+	GetAll(_startInt int, _endInt int, queue string) ([]entities.PembelianDL, int, error)
 	UpdateByID(input entities.PembelianDL, id string) error
 	GetByID(id string) (entities.PembelianDL, error)
 	GetTotalPembelian(date string) ([]RekapTotalPembelian, error)
@@ -27,8 +34,10 @@ type PembelianDLUsecase interface {
 	// CreateDataPembelian(world string, nama string, grow_id string, jenis_item bool, jumlah_dl int, wa string, metode_transfer int, gambar string, id string) error
 	GetTotal(date string) ([]RekapTotalPembelian, error)
 	GetDetailByID(id string) (entities.PembelianDL, error)
-	GetAllPembelian(_startInt int, _endInt int) ([]entities.PembelianDL, int, error)
+	GetTrackingByID(id string) (PembelianTrackingResponse, error)
+	GetAllPembelian(_startInt int, _endInt int, queue string) ([]entities.PembelianDL, int, error)
 	CreateDataPembelian(input entities.PembelianDL) error
+	CreateDataPembelianManual(input entities.PembelianDL) error
 	ChargeAndCreate(input entities.PembelianDL) (map[string]any, error)
 	GetLiveStatus(id string) (map[string]any, error)
 	UpdateStatusPembayaran(id string) error
@@ -36,6 +45,95 @@ type PembelianDLUsecase interface {
 	UpdateStatusPengiriman(id string, input entities.PembelianDL) error
 	UpdateStatusButtonBayar(id string, input entities.PembelianDL) error
 	UpdateStatusPembayaranAdmin(id string, input entities.PembelianDL) error
+}
+
+type PembelianSupportResponse struct {
+	Channel string `json:"channel"`
+	Message string `json:"message"`
+}
+
+type PembelianTrackingResponse struct {
+	ID                    string                   `json:"id"`
+	World                 string                   `json:"world"`
+	Nama                  string                   `json:"nama"`
+	GrowID                string                   `json:"grow_id"`
+	JenisItem             string                   `json:"jenis_item"`
+	JumlahDL              int                      `json:"jumlah_dl"`
+	MetodeTransfer        int                      `json:"metode_transfer"`
+	JumlahTransaksi       int64                    `json:"jumlah_transaksi"`
+	StatusPembayaran      string                   `json:"status_pembayaran"`
+	StatusPembayaranLabel string                   `json:"status_pembayaran_label"`
+	StatusPengiriman      bool                     `json:"status_pengiriman"`
+	StatusPengirimanLabel string                   `json:"status_pengiriman_label"`
+	BuktiPembayaran       string                   `json:"bukti_pembayaran"`
+	Support               PembelianSupportResponse `json:"support"`
+	CreatedAt             time.Time                `json:"created_at"`
+	UpdatedAt             time.Time                `json:"updated_at"`
+}
+
+func NewPembelianTrackingResponse(data entities.PembelianDL) PembelianTrackingResponse {
+	statusPengiriman := false
+	if data.StatusPengiriman != nil {
+		statusPengiriman = *data.StatusPengiriman
+	}
+
+	jenisItem := "DL"
+	if data.JenisItem {
+		jenisItem = "BGL"
+	}
+
+	return PembelianTrackingResponse{
+		ID:                    data.ID,
+		World:                 data.World,
+		Nama:                  data.Nama,
+		GrowID:                data.GrowID,
+		JenisItem:             jenisItem,
+		JumlahDL:              data.JumlahDL,
+		MetodeTransfer:        data.MetodeTransfer,
+		JumlahTransaksi:       data.JumlahTransaksi,
+		StatusPembayaran:      data.StatusPembayaran,
+		StatusPembayaranLabel: PaymentStatusLabel(data.StatusPembayaran, data.BuktiPembayaran),
+		StatusPengiriman:      statusPengiriman,
+		StatusPengirimanLabel: DeliveryStatusLabel(statusPengiriman),
+		BuktiPembayaran:       data.BuktiPembayaran,
+		Support: PembelianSupportResponse{
+			Channel: "whatsapp",
+			Message: "Halo admin, saya ingin bertanya tentang order " + data.ID,
+		},
+		CreatedAt: data.CreatedAt,
+		UpdatedAt: data.UpdatedAt,
+	}
+}
+
+func PaymentStatusLabel(status string, buktiPembayaran string) string {
+	if status == "belum_dibayar" && buktiPembayaran == "" {
+		return "Waiting for proof upload"
+	}
+	if status == "belum_dibayar" && buktiPembayaran != "" {
+		return "Waiting for admin confirmation"
+	}
+
+	switch status {
+	case "pending":
+		return "Payment pending"
+	case "success", "dibayar":
+		return "Payment confirmed"
+	case "deny":
+		return "Payment denied"
+	case "failure":
+		return "Payment failed"
+	case "challange":
+		return "Under review"
+	default:
+		return "Waiting for payment"
+	}
+}
+
+func DeliveryStatusLabel(statusPengiriman bool) string {
+	if statusPengiriman {
+		return "Delivered"
+	}
+	return "Waiting for delivery"
 }
 
 type MidtransData struct {

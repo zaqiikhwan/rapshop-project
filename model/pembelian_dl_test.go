@@ -33,3 +33,64 @@ func TestIniDataPembelianGrossAmount(t *testing.T) {
 		})
 	}
 }
+
+func TestPaymentStatusLabel(t *testing.T) {
+	cases := []struct {
+		name   string
+		status string
+		proof  string
+		want   string
+	}{
+		{"manual waiting upload", "belum_dibayar", "", "Waiting for proof upload"},
+		{"manual waiting confirmation", "belum_dibayar", "https://example.com/proof.jpg", "Waiting for admin confirmation"},
+		{"gateway pending", "pending", "", "Payment pending"},
+		{"gateway success", "success", "", "Payment confirmed"},
+		{"manual approved", "dibayar", "https://example.com/proof.jpg", "Payment confirmed"},
+		{"gateway denied", "deny", "", "Payment denied"},
+		{"gateway failed", "failure", "", "Payment failed"},
+		{"gateway review", "challange", "", "Under review"},
+		{"unknown", "unexpected", "", "Waiting for payment"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := PaymentStatusLabel(tc.status, tc.proof)
+			if got != tc.want {
+				t.Fatalf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestNewPembelianTrackingResponse(t *testing.T) {
+	shipped := true
+	response := NewPembelianTrackingResponse(entities.PembelianDL{
+		ID:               "order-1",
+		JenisItem:        true,
+		JumlahDL:         100,
+		StatusPembayaran: "dibayar",
+		StatusPengiriman: &shipped,
+		BuktiPembayaran:  "https://example.com/proof.jpg",
+		JumlahTransaksi:  9000,
+		MetodeTransfer:   7,
+		World:            "WORLD",
+		Nama:             "Buyer",
+		GrowID:           "GrowID",
+	})
+
+	if response.JenisItem != "BGL" {
+		t.Fatalf("jenis_item got %q, want BGL", response.JenisItem)
+	}
+	if !response.StatusPengiriman {
+		t.Fatal("status_pengiriman got false, want true")
+	}
+	if response.StatusPengirimanLabel != "Delivered" {
+		t.Fatalf("status_pengiriman_label got %q, want Delivered", response.StatusPengirimanLabel)
+	}
+	if response.StatusPembayaranLabel != "Payment confirmed" {
+		t.Fatalf("status_pembayaran_label got %q, want Payment confirmed", response.StatusPembayaranLabel)
+	}
+	if response.Support.Channel != "whatsapp" {
+		t.Fatalf("support.channel got %q, want whatsapp", response.Support.Channel)
+	}
+}
